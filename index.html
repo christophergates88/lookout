@@ -440,6 +440,14 @@ iframe.live{flex:1;border:0;width:100%;background:var(--panel-2)}
         <div class="field"><input id="camKey" placeholder="Paste Windy webcams key" autocomplete="off"><button class="btn" id="camKeySave">Save</button></div>
       </div>
       <div class="cams" id="camGrid"></div>
+      <div class="card" id="gaDotCard" hidden>
+        <div class="sec-hd"><span class="label">Georgia DOT — highway cams &amp; incidents</span><small id="gaDotMeta"></small></div>
+        <div id="gaDotKeyBox">
+          <p class="note" style="margin:8px 0 10px">A free Georgia 511 developer key pulls in official interstate cameras and live crash/incident reports. Get one at <a href="https://511ga.org/developers" target="_blank" rel="noopener">511ga.org/developers</a> — it stays private on this phone.</p>
+          <div class="field"><input id="dotKeyInline" placeholder="Paste Georgia 511 key" autocomplete="off" autocapitalize="off" autocorrect="off"><button class="btn" id="dotKeyInlineSave">Save</button></div>
+        </div>
+        <div class="list" id="gaIncidents" style="margin-top:6px"></div>
+      </div>
       <div class="card">
         <div class="label">Traffic cameras (state DOT)</div>
         <p class="note" style="margin:6px 0 8px">Every state runs its own highway camera network. These open the official one for where you are.</p>
@@ -645,6 +653,7 @@ function show(tab){
   if(tab==="home"){ initMini(); setTimeout(()=>mini&&mini.invalidateSize(),60); }
   if(tab==="map"){ initMap(); setTimeout(()=>map&&map.invalidateSize(),60); }
   if(tab==="traffic") loadWaze();
+  if(tab==="cams") renderGADot();
   if(tab==="news" && !S.newsLoaded) loadNews();
   store.set("tab",tab);
 }
@@ -882,6 +891,7 @@ $("#camKeySave2").onclick=()=>saveKey($("#camKey2").value);
 $("#camKey2").value=camKey();
 function saveDot(v){ v=(v||"").trim(); if(!v) return; store.set("gaKey",v); $("#dotKey").value=v; toast(S.state==="GA"?"Georgia DOT key saved":"Saved — loads when you're in Georgia"); loadGDOT(); }
 $("#dotKeySave").onclick=()=>saveDot($("#dotKey").value);
+$("#dotKeyInlineSave").onclick=saveDotInline;
 $("#dotKey").value=dotKey();
 function dotKey(){ return store.get("gaKey",""); }
 async function loadCams(){
@@ -904,7 +914,26 @@ async function loadGDOT(){
       .filter(c=>kmBetween(S.lat,S.lon,c.lat,c.lon)<=100);
     S.dotErr=false;
   }catch(e){ S.camsD=[]; S.dotErr=true; }
-  rebuildCams();
+  try{
+    const ev=await getJSON(`https://511ga.org/api/v2/get/events?key=${encodeURIComponent(key)}&format=json`,{},20000);
+    S.gaEvents=(ev||[]).map(e=>({type:e.EventType||e.Type||e.Category||"Incident",desc:e.Description||e.Headline||e.Location||"",road:e.RoadwayName||e.Roadway||"",lat:e.Latitude,lon:e.Longitude}))
+      .filter(e=>e.lat&&e.lon&&kmBetween(S.lat,S.lon,e.lat,e.lon)<=90)
+      .map(e=>({...e,km:kmBetween(S.lat,S.lon,e.lat,e.lon)})).sort((a,b)=>a.km-b.km);
+  }catch(e){ S.gaEvents=null; }
+  rebuildCams(); renderGADot();
+}
+function saveDotInline(){ const v=(($("#dotKeyInline")||{}).value||"").trim(); if(!v) return; store.set("gaKey",v); const s=$("#dotKey"); if(s) s.value=v; toast("Georgia DOT key saved — checking Georgia 511…"); loadGDOT(); }
+function renderGADot(){
+  const card=$("#gaDotCard"); if(!card) return;
+  if(S.state!=="GA"){ card.hidden=true; return; }
+  card.hidden=false;
+  const hasKey=!!dotKey(), kb=$("#gaDotKeyBox"), inc=$("#gaIncidents"), meta=$("#gaDotMeta");
+  if(kb) kb.hidden=hasKey;
+  if(!hasKey){ if(inc) inc.innerHTML=""; if(meta) meta.textContent=""; return; }
+  if(S.dotErr){ if(meta) meta.textContent="blocked"; if(inc) inc.innerHTML=`<div class="empty">Couldn't reach Georgia 511 — their system blocks outside apps, so the in-app DOT feed won't load here. Your <b>Traffic</b> tab still shows live crashes, and the official DOT camera map is linked below.</div>`; return; }
+  const nD=S.camsD.length, ev=S.gaEvents||[];
+  if(meta) meta.textContent=`${nD} cams · ${ev.length} incidents nearby`;
+  if(inc) inc.innerHTML=ev.length?ev.slice(0,12).map(e=>`<a class="row" href="https://511ga.org/" target="_blank" rel="noopener"><span class="ic">${ICON.bolt}</span><span class="t"><b>${esc(e.type)}${e.road?" · "+esc(e.road):""}</b><small>${esc((e.desc||"").slice(0,90))} · ${miles(e.km).toFixed(0)} mi</small></span><span class="go">↗</span></a>`).join(""):`<div class="empty">No active DOT incidents within ~55 miles right now.</div>`;
 }
 function rebuildCams(){
   S.cams=[...S.camsW,...S.camsD].map(c=>({...c,km:c.lat!=null?kmBetween(S.lat,S.lon,c.lat,c.lon):null})).sort((a,b)=>(a.km??1e9)-(b.km??1e9));
