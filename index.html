@@ -925,7 +925,7 @@ function setBase(){
   if(!map) return;
   const dark = document.documentElement.dataset.theme==="dark" || (!document.documentElement.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches);
   if(base) map.removeLayer(base);
-  base=L.tileLayer(`https://{s}.basemaps.cartocdn.com/${dark?"dark_all":"rastertiles/voyager"}/{z}/{x}/{y}{r}.png`,{maxZoom:19,subdomains:"abcd",attribution:'&copy; OpenStreetMap &copy; CARTO'}).addTo(map);
+  base=L.tileLayer(`https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_${dark?"Dark":"Light"}_Gray_Base/MapServer/tile/{z}/{y}/{x}`,{maxZoom:16,attribution:'Tiles &copy; Esri'}).addTo(map);
   base.bringToBack();
 }
 function initMap(){
@@ -952,7 +952,7 @@ function setMiniBase(){
   if(!mini) return;
   const dark=document.documentElement.dataset.theme==="dark"||(!document.documentElement.dataset.theme&&matchMedia("(prefers-color-scheme: dark)").matches);
   if(miniBase) mini.removeLayer(miniBase);
-  miniBase=L.tileLayer(`https://{s}.basemaps.cartocdn.com/${dark?"dark_all":"rastertiles/voyager"}/{z}/{x}/{y}{r}.png`,{maxZoom:19,subdomains:"abcd",attribution:'&copy; CARTO'}).addTo(mini);
+  miniBase=L.tileLayer(`https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_${dark?"Dark":"Light"}_Gray_Base/MapServer/tile/{z}/{y}/{x}`,{maxZoom:16,attribution:'Tiles &copy; Esri'}).addTo(mini);
   miniBase.bringToBack();
 }
 function drawMiniCams(){ if(!miniCam) return; miniCam.clearLayers(); S.cams.slice(0,40).forEach(c=>{ if(c.lat==null) return; L.circleMarker([c.lat,c.lon],{radius:5,color:"#f2b134",weight:2,fillOpacity:.85,interactive:false}).addTo(miniCam); }); if(S.alerts) S.alerts.forEach(a=>{ if(!a.geometry) return; L.geoJSON(a.geometry,{interactive:false,style:{color:/Severe|Extreme/.test(a.severity)?"#ff5c5c":"#f2b134",weight:1.5,fillOpacity:.12}}).addTo(miniCam); }); }
