@@ -870,7 +870,7 @@ function renderNearby(){
   const list=located();
   $("#fabCam").hidden=!list.length;
   const el=$("#nearList");
-  if(!camKey()&&!dotKey()){ el.innerHTML=`<div class="empty">Add a free camera key in <a href="#" id="nearSetup">Setup</a> to light this up.</div>`; const s=$("#nearSetup"); if(s) s.onclick=e=>{e.preventDefault();show("set");}; $("#nearMeta").textContent=""; return; }
+  if(!camKey()&&!dotKey()){ el.innerHTML=`<div class="empty" style="margin-bottom:8px">Paste your free Windy webcams key here to turn cameras on (it stays private on this phone):</div><div class="field"><input id="homeCamKey" placeholder="Paste Windy key here" autocomplete="off" autocapitalize="off" autocorrect="off"><button class="btn" id="homeCamSave">Save</button></div>`; const b=$("#homeCamSave"); if(b) b.onclick=()=>saveKey($("#homeCamKey").value); const inp=$("#homeCamKey"); if(inp) inp.onkeydown=e=>{ if(e.key==="Enter") saveKey(inp.value); }; $("#nearMeta").textContent=""; return; }
   if(!list.length){ el.innerHTML=`<div class="empty">No public cameras with a location within 50 miles. Your state DOT map (Cams tab) has more.</div>`; $("#nearMeta").textContent=""; return; }
   $("#nearMeta").textContent=`${list.length} located · closest first`;
   el.innerHTML=list.slice(0,8).map((c,i)=>{
