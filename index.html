@@ -1,0 +1,1040 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Lookout">
+<meta name="theme-color" content="#0b0f16">
+<title>Lookout</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+/* Lookout — "Premium consumer app" direction. Mobile-first, soft depth, calm & trustworthy.
+   Tokens preserve the original names so JS + both themes keep working. */
+:root{
+  --bg:#0b0f16; --panel:#141b26; --panel-2:#1e2836; --line:#28323f;
+  --fg:#eaf1f8; --muted:#90a0b2; --accent:#f5b63f; --accent-ink:#1a1204;
+  --ok:#43cc8a; --warn:#f5b63f; --bad:#ff6060; --info:#5cb3ff;
+  --display:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  --r-lg:22px; --r:17px; --r-sm:12px;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.28);
+  --shadow:0 10px 28px -14px rgba(0,0,0,.6);
+  --shadow-lg:0 26px 60px -22px rgba(0,0,0,.72);
+  --glass:color-mix(in srgb,var(--panel) 72%,transparent);
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg:#eef2f6; --panel:#ffffff; --panel-2:#eef2f7; --line:#e0e7ef;
+    --fg:#0f1a24; --muted:#5a6b7c; --accent:#b97800; --accent-ink:#ffffff;
+    --ok:#1f8a57; --warn:#b97800; --bad:#c62828; --info:#1f6fbf;
+    --shadow-sm:0 1px 2px rgba(16,24,40,.06);
+    --shadow:0 12px 30px -16px rgba(16,24,40,.22);
+    --shadow-lg:0 30px 64px -26px rgba(16,24,40,.3);
+    --glass:color-mix(in srgb,var(--panel) 78%,transparent);
+    color-scheme:light;
+  }
+}
+:root[data-theme="light"]{
+  --bg:#eef2f6; --panel:#ffffff; --panel-2:#eef2f7; --line:#e0e7ef;
+  --fg:#0f1a24; --muted:#5a6b7c; --accent:#b97800; --accent-ink:#ffffff;
+  --ok:#1f8a57; --warn:#b97800; --bad:#c62828; --info:#1f6fbf;
+  --shadow-sm:0 1px 2px rgba(16,24,40,.06);
+  --shadow:0 12px 30px -16px rgba(16,24,40,.22);
+  --shadow-lg:0 30px 64px -26px rgba(16,24,40,.3);
+  --glass:color-mix(in srgb,var(--panel) 78%,transparent);
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--fg);font:15px/1.5 var(--body);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;overflow:hidden;letter-spacing:-.006em}
+button,input,select{font:inherit;color:inherit}
+a{color:var(--info)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+
+.app{display:grid;grid-template-rows:auto 1fr auto;height:100%;}
+@media (min-width:900px){.app{grid-template-columns:104px 1fr;grid-template-rows:auto 1fr}.app header{grid-column:1/3}.app nav{grid-row:2;grid-column:1}.app main{grid-row:2;grid-column:2}}
+
+/* ---------- Header ---------- */
+header{background:var(--glass);-webkit-backdrop-filter:saturate(1.4) blur(18px);backdrop-filter:saturate(1.4) blur(18px);
+  border-bottom:1px solid color-mix(in srgb,var(--line) 70%,transparent);
+  padding-top:env(safe-area-inset-top,0px);
+  padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px));z-index:10}
+.hdr{display:flex;align-items:center;gap:12px;min-height:62px;padding-block:10px}
+.brand{font:800 20px/1 var(--display);letter-spacing:-.02em;display:flex;align-items:center;gap:9px}
+.brand i{width:11px;height:11px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 22%,transparent),0 0 14px color-mix(in srgb,var(--accent) 55%,transparent)}
+.loc{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;line-height:1.2;background:none;border:0;padding:0;cursor:pointer;text-align:left;font:inherit;color:inherit}
+.loc:hover b{color:var(--accent)}
+.loc b{font:700 17px/1.15 var(--display);letter-spacing:-.015em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.loc small{color:var(--muted);font:11px/1.3 var(--mono);letter-spacing:-.02em}
+.iconbtn{background:var(--panel-2);border:1px solid var(--line);border-radius:13px;height:42px;min-width:42px;padding:0 13px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px;font-weight:600;font-size:13px;transition:transform .16s ease,border-color .2s,background .2s;color:var(--fg);text-decoration:none}
+.iconbtn:hover{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,var(--panel-2))}
+.iconbtn:active{transform:scale(.95)}
+.iconbtn svg{width:18px;height:18px}
+
+/* ---------- Bottom tabs / side rail ---------- */
+nav{background:var(--glass);-webkit-backdrop-filter:saturate(1.4) blur(18px);backdrop-filter:saturate(1.4) blur(18px);
+  border-top:1px solid color-mix(in srgb,var(--line) 70%,transparent);display:flex;justify-content:space-around;z-index:10;
+  padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+@media (min-width:900px){nav{flex-direction:column;justify-content:flex-start;border-top:0;border-right:1px solid color-mix(in srgb,var(--line) 70%,transparent);padding-top:14px;gap:6px}}
+nav button{flex:1 1 0;background:none;border:0;padding:9px 1px 7px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;color:var(--muted);font:600 9.5px var(--display);letter-spacing:.02em;text-transform:uppercase;position:relative;min-width:0;overflow:hidden;transition:color .22s ease}
+@media (min-width:900px){nav button{flex:0;padding:12px 4px;border-radius:16px;margin:0 10px}}
+nav button svg{width:25px;height:25px;transition:transform .28s cubic-bezier(.34,1.56,.64,1)}
+nav button::before{content:"";position:absolute;top:0;left:50%;transform:translateX(-50%) scaleX(0);width:30px;height:3px;border-radius:0 0 4px 4px;background:var(--accent);transition:transform .3s cubic-bezier(.34,1.56,.64,1)}
+@media (min-width:900px){nav button::before{top:50%;left:0;width:3px;height:26px;border-radius:0 4px 4px 0;transform:translateY(-50%) scaleY(0)}}
+nav button[aria-current="page"]{color:var(--accent)}
+nav button[aria-current="page"]::before{transform:translateX(-50%) scaleX(1)}
+@media (min-width:900px){nav button[aria-current="page"]::before{transform:translateY(-50%) scaleY(1)}
+  nav button[aria-current="page"]{background:color-mix(in srgb,var(--accent) 12%,transparent)}}
+nav button[aria-current="page"] svg{transform:translateY(-1px) scale(1.06)}
+nav button:active svg{transform:scale(.9)}
+nav button .dot{position:absolute;top:4px;right:calc(50% - 19px);width:9px;height:9px;border-radius:50%;background:var(--bad);border:2px solid var(--panel);box-shadow:0 0 0 2px color-mix(in srgb,var(--bad) 40%,transparent)}
+
+/* ---------- Main / views ---------- */
+main{overflow-y:auto;-webkit-overflow-scrolling:touch;min-height:0;overscroll-behavior-y:contain}
+.view{padding-block:18px 32px;padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px));max-width:1240px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.view.full{max-width:none;padding:0;height:100%}
+@keyframes viewIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.view{animation:viewIn .42s cubic-bezier(.22,.61,.36,1)}
+.view.full{animation:fadeIn .4s ease}
+
+h2{font:700 15px/1.1 var(--display);letter-spacing:-.01em;color:var(--fg);margin:0}
+.sec-hd{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:0 2px}
+.sec-hd small{color:var(--muted);font:11px var(--mono);letter-spacing:-.02em}
+
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px;min-width:0;box-shadow:var(--shadow-sm);transition:transform .25s ease,border-color .2s,box-shadow .25s}
+.needloc{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.minimap{padding:0;overflow:hidden;position:relative}
+#miniMap{height:170px;width:100%;pointer-events:none;background:var(--panel-2)}
+.mini-overlay{position:absolute;inset:0;z-index:500;border:0;background:transparent;cursor:pointer;display:flex;align-items:flex-end;justify-content:flex-start;padding:12px}
+.mini-overlay:hover .mini-badge{background:rgba(0,0,0,.72)}
+.mini-badge{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:11.5px;letter-spacing:.02em;color:#fff;background:rgba(0,0,0,.55);-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);padding:6px 11px;border-radius:999px}
+.mini-badge svg{width:14px;height:14px}
+.minimap .leaflet-control-attribution{font-size:9px;background:rgba(0,0,0,.4);color:rgba(255,255,255,.7)}
+.minimap .leaflet-control-attribution a{color:rgba(255,255,255,.85)}
+.card.tap{cursor:pointer}
+.card.tap:hover{border-color:color-mix(in srgb,var(--accent) 55%,var(--line));transform:translateY(-2px);box-shadow:var(--shadow)}
+.label{font:600 11px var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+
+/* ---------- Hero conditions (sky-gradient) ---------- */
+.hero{position:relative;overflow:hidden;color:#fff;border:0;padding:22px 20px 20px;border-radius:var(--r-lg);box-shadow:var(--shadow-lg);
+  text-shadow:0 1px 3px rgba(0,0,0,.22);
+  background:linear-gradient(165deg,#2b7fcc 0%,#5aa6e3 45%,#9fcdee 100%);
+  transition:background 1.1s ease,transform .25s ease,box-shadow .25s}
+.hero::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(130% 80% at 85% -10%,rgba(255,255,255,.28),transparent 55%);mix-blend-mode:screen;opacity:.8}
+.hero>*{position:relative;z-index:1}
+.hero .sec-hd{padding:0}
+.hero .label,.hero #wxUpdated{color:rgba(255,255,255,.78)}
+.now{display:grid;grid-template-columns:auto 1fr;gap:4px 20px;align-items:end;margin-top:10px}
+.now .temp{font:200 92px/0.86 var(--display);letter-spacing:-.045em;color:#fff}
+.now .temp sup{font:400 28px var(--display);color:rgba(255,255,255,.72);vertical-align:top;margin-left:2px;letter-spacing:0}
+.now .cond{font:600 23px/1.12 var(--display);letter-spacing:-.02em;color:#fff}
+.now .feels{color:rgba(255,255,255,.8);font-size:13px;margin-top:3px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:18px;padding-top:15px;border-top:1px solid rgba(255,255,255,.2)}
+.stats div{min-width:0}
+.stats b{display:block;font:600 19px var(--mono);letter-spacing:-.02em;color:#fff}
+.stats span{font-size:10.5px;color:rgba(255,255,255,.72);text-transform:uppercase;letter-spacing:.05em}
+@media (max-width:440px){.stats{grid-template-columns:repeat(2,1fr);gap:12px 10px}.now .temp{font-size:82px}}
+
+.hourly{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-top:16px;scrollbar-width:thin;scroll-snap-type:x proximity}
+.hourly::-webkit-scrollbar{height:0}
+.hr{flex:0 0 56px;text-align:center;background:rgba(255,255,255,.15);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);border-radius:14px;padding:10px 2px;font-size:12px;color:rgba(255,255,255,.9);scroll-snap-align:start}
+.hr b{display:block;font:600 16px var(--mono);color:#fff;margin:2px 0}
+.hr .pp{color:#cbe8ff;font-family:var(--mono);font-size:10px}
+
+/* ---------- Alerts ---------- */
+.alert{border-radius:var(--r);border:1px solid var(--line);background:var(--panel);overflow:hidden;box-shadow:var(--shadow-sm);
+  --tint:color-mix(in srgb,var(--sev,var(--warn)) 9%,var(--panel))}
+.alert{background:var(--tint)}
+.alert summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:5px 1fr auto;gap:13px;align-items:stretch}
+.alert summary::-webkit-details-marker{display:none}
+.alert .stripe{background:var(--sev,var(--warn))}
+.alert .ah{padding:14px 0;min-width:0}
+.alert .ah b{display:block;font:700 18px/1.15 var(--display);letter-spacing:-.015em}
+.alert .ah small{color:var(--muted);font-size:12px}
+.alert .chev{padding:14px 15px;color:var(--muted);align-self:center;transition:transform .3s ease}
+.alert[open] .chev{transform:rotate(180deg)}
+.alert .ab{padding:2px 18px 18px 23px;white-space:pre-wrap;font-size:14px;color:var(--fg);line-height:1.6}
+.alert .ab p{margin:8px 0 0}
+.pill{display:inline-flex;align-items:center;gap:6px;font:600 10.5px var(--display);letter-spacing:.06em;text-transform:uppercase;padding:4px 9px;border-radius:99px;background:var(--panel-2);color:var(--muted)}
+.pill.bad{background:color-mix(in srgb,var(--bad) 16%,transparent);color:var(--bad)}
+.pill.warn{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)}
+.pill.ok{background:color-mix(in srgb,var(--ok) 16%,transparent);color:var(--ok)}
+.pill.info{background:color-mix(in srgb,var(--info) 16%,transparent);color:var(--info)}
+.allclear{display:flex;align-items:center;gap:14px;border-color:color-mix(in srgb,var(--ok) 28%,var(--line));
+  background:linear-gradient(120deg,color-mix(in srgb,var(--ok) 7%,var(--panel)),var(--panel))}
+.allclear .big{font:700 20px var(--display);letter-spacing:-.015em}
+
+.kv{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
+.kv:last-child{border-bottom:0}
+.kv span:first-child{color:var(--muted)}
+.kv span:last-child{font-family:var(--mono);text-align:right;font-size:13px}
+
+.list{display:flex;flex-direction:column}
+.row{display:grid;grid-template-columns:auto 1fr auto;gap:13px;align-items:center;padding:13px 0;border-bottom:1px solid var(--line);text-decoration:none;color:var(--fg);min-width:0;transition:padding-left .2s ease}
+.row:last-child{border-bottom:0}
+.row:hover{padding-left:4px}
+.row .t{min-width:0}
+.row .t b{display:block;font-weight:600;font-size:14px;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis}
+.row .t small{color:var(--muted);font-size:12px}
+.row .ic{width:40px;height:40px;border-radius:12px;background:color-mix(in srgb,var(--accent) 12%,var(--panel-2));display:grid;place-items:center;color:var(--accent);flex:none;transition:transform .2s ease,background .2s}
+.row:hover .ic{transform:scale(1.06);background:color-mix(in srgb,var(--accent) 20%,var(--panel-2))}
+.row .ic svg{width:20px;height:20px}
+.row .go{color:var(--muted);font-size:18px;transition:transform .2s ease}
+.row:hover .go{transform:translateX(3px);color:var(--accent)}
+a.row:hover .t b{color:var(--accent)}
+
+/* ---------- Map ---------- */
+.mapwrap{position:relative;height:100%;min-height:400px}
+#map{position:absolute;inset:0;background:var(--panel-2)}
+.layers{position:absolute;z-index:500;top:14px;right:max(14px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:7px;
+  background:var(--glass);border:1px solid var(--line);border-radius:16px;padding:12px 14px;box-shadow:var(--shadow);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.layers label{display:flex;gap:9px;align-items:center;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap}
+.layers input{accent-color:var(--accent);width:17px;height:17px}
+.leaflet-container{font-family:var(--body)}
+.leaflet-control-zoom a{border-radius:8px!important}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--panel);color:var(--fg);box-shadow:var(--shadow)}
+.leaflet-popup-content-wrapper{border-radius:14px}
+.leaflet-popup-content{margin:13px 15px;font-size:13px}
+.leaflet-popup-content img{border-radius:10px;display:block;margin-top:6px}
+.ac-icon{color:var(--info);font-size:16px;text-shadow:0 0 2px var(--bg)}
+.me-icon{width:18px;height:18px;border-radius:50%;background:var(--accent);border:3px solid var(--bg);box-shadow:0 0 0 6px color-mix(in srgb,var(--accent) 30%,transparent)}
+
+/* ---------- Cameras ---------- */
+.cams{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+.cam{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;text-decoration:none;color:var(--fg);display:flex;flex-direction:column;box-shadow:var(--shadow-sm);transition:transform .25s ease,border-color .2s,box-shadow .25s}
+.cam .img{aspect-ratio:16/9;background:var(--panel-2) center/cover no-repeat;max-width:100%;position:relative}
+.cam .img .live{position:absolute;top:9px;left:9px}
+.cam .cap{padding:11px 13px}
+.cam .cap b{display:block;font-size:14px;font-weight:600;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cam .cap small{color:var(--muted);font:12px var(--mono);letter-spacing:-.02em}
+.cam:hover{border-color:color-mix(in srgb,var(--accent) 55%,var(--line));transform:translateY(-3px);box-shadow:var(--shadow)}
+.pill.live{background:var(--bad);color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+
+/* ---------- Frames ---------- */
+.framewrap{position:relative;height:100%;min-height:420px;display:flex;flex-direction:column}
+.framebar{display:flex;gap:10px;align-items:center;padding:12px max(18px,env(safe-area-inset-right,0px)) 12px max(18px,env(safe-area-inset-left,0px));background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap}
+.framebar .grow{flex:1;min-width:0;color:var(--muted);font-size:13px}
+iframe.live{flex:1;border:0;width:100%;background:var(--panel-2)}
+
+/* ---------- Forms ---------- */
+.field{display:flex;gap:9px}
+.field input{flex:1;min-width:0;background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;transition:border-color .2s,box-shadow .2s}
+.field input:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 20%,transparent);outline:none}
+.btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:12px;padding:12px 18px;font:700 14px var(--display);letter-spacing:.01em;cursor:pointer;transition:transform .15s ease,filter .2s;box-shadow:var(--shadow-sm)}
+.btn:hover{filter:brightness(1.05)}
+.btn:active{transform:scale(.96)}
+.btn.ghost{background:var(--panel-2);color:var(--fg);border:1px solid var(--line);box-shadow:none}
+.note{color:var(--muted);font-size:13px;margin:0;line-height:1.6}
+.empty{color:var(--muted);font-size:14px;padding:26px 16px;text-align:center;line-height:1.65}
+
+/* ---------- News ---------- */
+.news{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+.story{display:grid;grid-template-columns:92px 1fr;gap:13px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:11px;text-decoration:none;color:var(--fg);min-width:0;box-shadow:var(--shadow-sm);transition:transform .25s ease,border-color .2s,box-shadow .25s}
+.story .th{width:92px;height:70px;border-radius:11px;background:var(--panel-2) center/cover no-repeat}
+.story b{font-size:14px;font-weight:600;line-height:1.35;letter-spacing:-.01em;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.story small{color:var(--muted);font:11px var(--mono);letter-spacing:-.02em;display:block;margin-top:5px}
+.story:hover{border-color:color-mix(in srgb,var(--accent) 55%,var(--line));transform:translateY(-2px);box-shadow:var(--shadow)}
+
+/* ---------- Drive mode ---------- */
+.drive{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;
+  background:radial-gradient(120% 55% at 50% -8%,color-mix(in srgb,var(--accent) 11%,transparent),transparent 62%),var(--bg);
+  padding:calc(env(safe-area-inset-top,0px) + 22px) max(26px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 22px) max(26px,env(safe-area-inset-left,0px));gap:18px}
+.drive .top{display:flex;justify-content:space-between;align-items:center}
+.drive .clock{font:200 clamp(64px,18vw,180px)/0.9 var(--display);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.drive .dtemp{font:300 clamp(40px,10vw,96px)/1 var(--display);letter-spacing:-.03em}
+.drive .dcond{font:600 clamp(22px,5vw,40px)/1.1 var(--display);letter-spacing:-.02em;color:var(--muted)}
+.drive .dalert{border-left:7px solid var(--sev,var(--ok));padding:14px 18px;background:var(--panel);border-radius:14px;box-shadow:var(--shadow-sm);font:700 clamp(22px,5vw,38px)/1.18 var(--display);letter-spacing:-.015em}
+.drive .dmeta{display:flex;gap:30px;flex-wrap:wrap;font:600 clamp(18px,4vw,28px) var(--mono);letter-spacing:-.02em;color:var(--muted)}
+.drive .spacer{flex:1}
+
+/* ---------- Nearby portal ---------- */
+.nearby{display:flex;flex-direction:column}
+.near{display:grid;grid-template-columns:70px 1fr auto;gap:13px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line);cursor:pointer;min-width:0;transition:padding-left .2s ease}
+.near:last-child{border-bottom:0}
+.near:hover{padding-left:4px}
+.near .th{width:70px;height:48px;border-radius:11px;background:var(--panel-2) center/cover no-repeat;flex:none;position:relative;overflow:hidden}
+.near .th .lv{position:absolute;bottom:4px;left:4px;font:700 8px var(--display);letter-spacing:.06em;background:var(--bad);color:#fff;padding:2px 5px;border-radius:5px}
+.near .t{min-width:0}
+.near .t b{display:block;font-weight:600;font-size:14px;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.near .t small{color:var(--muted);font:12px var(--mono);letter-spacing:-.02em}
+.near .dist{text-align:right;font:700 16px var(--display);letter-spacing:-.02em;color:var(--accent);white-space:nowrap}
+.near .dist small{display:block;color:var(--muted);font:11px var(--mono);letter-spacing:0;font-weight:400}
+.near:hover b{color:var(--accent)}
+
+/* ---------- Floating nearest-camera button ---------- */
+.fab{position:fixed;z-index:1500;right:max(18px,env(safe-area-inset-right,0px));bottom:calc(90px + env(safe-area-inset-bottom,0px));
+  background:var(--accent);color:var(--accent-ink);border:0;border-radius:99px;padding:14px 20px;font:700 14px var(--display);letter-spacing:.01em;
+  cursor:pointer;display:flex;align-items:center;gap:9px;box-shadow:0 12px 30px -6px color-mix(in srgb,var(--accent) 55%,rgba(0,0,0,.4));
+  transition:transform .18s ease,filter .2s;animation:fabIn .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes fabIn{from{opacity:0;transform:translateY(16px) scale(.9)}to{opacity:1;transform:none}}
+.fab:hover{filter:brightness(1.05)}
+.fab:active{transform:scale(.94)}
+.fab svg{width:20px;height:20px}
+@media (min-width:900px){.fab{bottom:calc(26px + env(safe-area-inset-bottom,0px))}}
+
+/* ---------- Inline camera viewer ---------- */
+.viewer{position:fixed;inset:0;z-index:4000;background:rgba(4,8,14,.84);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;
+  padding:calc(env(safe-area-inset-top,0px) + 16px) max(16px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 16px) max(16px,env(safe-area-inset-left,0px));
+  animation:fadeIn .25s ease}
+.vbox{background:var(--panel);border:1px solid var(--line);border-radius:20px;overflow:hidden;width:min(900px,100%);max-height:100%;display:flex;flex-direction:column;box-shadow:var(--shadow-lg);animation:popIn .3s cubic-bezier(.34,1.3,.64,1)}
+@keyframes popIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:none}}
+.vbox .vhd{display:flex;align-items:center;gap:11px;padding:13px 15px;border-bottom:1px solid var(--line)}
+.vbox .vhd .t{flex:1;min-width:0}
+.vbox .vhd .t b{display:block;font:600 16px var(--display);letter-spacing:-.015em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vbox .vhd .t small{color:var(--muted);font:12px var(--mono);letter-spacing:-.02em}
+.vbox .vhd button{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;width:40px;height:40px;cursor:pointer;font-size:18px;flex:none;transition:transform .15s ease,border-color .2s}
+.vbox .vhd button:hover{border-color:var(--accent)}
+.vbox .vhd button:active{transform:scale(.92)}
+.vbox .vimg{background:#000 center/contain no-repeat;aspect-ratio:16/9;max-height:62vh;width:100%;display:block}
+.vbox .vft{display:flex;gap:9px;align-items:center;padding:11px 15px;border-top:1px solid var(--line);flex-wrap:wrap}
+.vbox .vft .grow{flex:1;min-width:0;color:var(--muted);font:12px var(--mono);letter-spacing:-.02em}
+.vnav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.52);color:#fff;border:0;width:46px;height:66px;font-size:26px;cursor:pointer;transition:background .2s}
+.vnav:hover{background:rgba(0,0,0,.72)}
+.vnav.prev{left:4px;border-radius:0 12px 12px 0}.vnav.next{right:4px;border-radius:12px 0 0 12px}
+
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(90px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:12px 18px;border-radius:13px;font-size:14px;font-weight:500;z-index:5000;max-width:calc(100% - 32px);box-shadow:var(--shadow-lg);animation:toastIn .35s cubic-bezier(.34,1.4,.64,1)}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(12px)}to{opacity:1;transform:translateX(-50%)}}
+.spin{animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Situation glance strip */
+.glance{display:flex;align-items:center;gap:10px;min-height:34px;position:relative;overflow:hidden;border-top:1px solid var(--line);padding-block:7px}
+.glance::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--gsev,var(--ok))}
+.glance[data-sev="bad"]{--gsev:var(--bad)}.glance[data-sev="warn"]{--gsev:var(--warn)}.glance[data-sev="info"]{--gsev:var(--info)}.glance[data-sev="ok"]{--gsev:var(--ok)}
+.glance-label{flex:none;margin-left:8px;font-weight:700;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--gsev,var(--ok))}
+.glance-text{flex:1;min-width:0;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--fg);font-variant-numeric:tabular-nums}
+.glance-time{flex:none;font-size:10.5px;color:var(--muted);display:flex;align-items:center;gap:6px;white-space:nowrap}
+.glance-time::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--gsev,var(--ok));animation:glancePulse 2.4s ease-out infinite}
+@keyframes glancePulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--gsev,var(--ok)) 70%,transparent)}70%{box-shadow:0 0 0 7px transparent}100%{box-shadow:0 0 0 0 transparent}}
+@media (max-width:560px){.glance-time{display:none}}
+
+@media (prefers-reduced-motion:reduce){
+  .spin{animation:none}
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+  .hero{transition:none}
+}
+</style>
+<style id="hotfix-hidden">[hidden]{display:none!important}</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="hdr">
+      <div class="brand"><i></i><span>Lookout</span></div>
+      <button class="loc" id="locBtn" aria-label="Change location"><b id="locName">Finding you…</b><small id="locMeta">—</small></button>
+      <button class="iconbtn" id="btnRefresh" aria-label="Refresh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg></button>
+      <button class="iconbtn" id="btnSet" aria-label="Setup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+      <button class="iconbtn" id="btnDrive" aria-label="Drive mode"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2"/><path d="M12 14v7M10 12H3M14 12h7"/></svg><span>Drive</span></button>
+    </div>
+    <div class="glance" id="glance" data-sev="ok">
+      <span class="glance-label" id="glanceLabel">Status</span>
+      <span class="glance-text" id="glanceText">Acquiring feeds…</span>
+      <span class="glance-time" id="glanceTime">standby</span>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- HOME -->
+    <section class="view" data-view="home">
+      <div class="card needloc" id="needLoc" hidden>
+        <div class="label">Set your location to begin</div>
+        <p class="note" style="margin:6px 0 10px">Type a ZIP code or tap the button to use your phone's location. Everything loads once Lookout knows where you are.</p>
+        <div class="field"><input id="homeZip" inputmode="numeric" placeholder="ZIP code (e.g. 31061)" autocomplete="off"><button class="btn" id="homeZipGo">Set</button></div>
+        <div style="margin-top:10px"><button class="btn ghost" id="homeGps">Use my current location</button></div>
+      </div>
+      <div class="card hero" id="wxHero">
+        <div class="sec-hd"><span class="label">Right now</span><small id="wxUpdated">—</small></div>
+        <div class="now">
+          <div class="temp num" id="wxTemp">--<sup>°F</sup></div>
+          <div><div class="cond" id="wxCond">Loading</div><div class="feels" id="wxFeels"></div></div>
+        </div>
+        <div class="stats">
+          <div><b class="num" id="wxWind">--</b><span>Wind mph</span></div>
+          <div><b class="num" id="wxGust">--</b><span>Gusts mph</span></div>
+          <div><b class="num" id="wxHum">--</b><span>Humidity</span></div>
+          <div><b class="num" id="wxAqi">--</b><span>Air quality</span></div>
+        </div>
+        <div class="hourly" id="wxHourly"></div>
+      </div>
+
+      <div id="alertsHome"></div>
+
+      <div class="card minimap" id="miniCard">
+        <div id="miniMap"></div>
+        <button class="mini-overlay" id="miniTap" aria-label="Open the full live map"><span class="mini-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/></svg>Live map · tap to expand</span></button>
+      </div>
+
+      <div class="card">
+        <div class="sec-hd"><span class="label">Nearest cameras</span><small id="nearMeta">—</small></div>
+        <div class="nearby" id="nearList" style="margin-top:6px"><div class="empty">Finding cameras around you…</div></div>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <div class="label">Forecast</div>
+          <div id="nwsFc" class="list" style="margin-top:6px"><div class="empty">Loading the National Weather Service forecast…</div></div>
+        </div>
+        <div class="card">
+          <div class="label">Around you</div>
+          <div style="margin-top:6px">
+            <div class="kv"><span>Sunrise / sunset</span><span id="sunTimes">--</span></div>
+            <div class="kv"><span>Today high / low</span><span id="hiLo">--</span></div>
+            <div class="kv"><span>Aircraft overhead (25 nm)</span><span id="acCount">--</span></div>
+            <div class="kv"><span>Earthquakes this week (300 km)</span><span id="eqCount">--</span></div>
+            <div class="kv"><span>Public cameras nearby</span><span id="camCount">--</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="label">Quick jump</div>
+          <div class="list" style="margin-top:4px">
+            <a class="row" href="#" data-go="traffic"><span class="ic">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 17h14M7 17V9l2-4h6l2 4v8"/><circle cx="8" cy="17" r="2"/><circle cx="16" cy="17" r="2"/></svg></span>
+              <span class="t"><b>Traffic, crashes and police reports</b><small>Live Waze map</small></span><span class="go">›</span></a>
+            <a class="row" href="#" data-go="scanner"><span class="ic">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="7" width="12" height="15" rx="2"/><path d="M10 7V2M10 12h4M10 16h4"/></svg></span>
+              <span class="t"><b>Police and fire scanner</b><small>Live radio feeds for your county</small></span><span class="go">›</span></a>
+            <a class="row" href="#" data-go="map"><span class="ic">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/></svg></span>
+              <span class="t"><b>Radar and live map</b><small>Rain, cameras, aircraft, quakes</small></span><span class="go">›</span></a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MAP -->
+    <section class="view full" data-view="map" hidden>
+      <div class="mapwrap">
+        <div id="map"></div>
+        <div class="layers" id="layers">
+          <label><input type="checkbox" id="lyRadar" checked> Weather radar</label>
+          <label><input type="checkbox" id="lyAlerts" checked> Warning areas</label>
+          <label><input type="checkbox" id="lyCams" checked> Cameras</label>
+          <label><input type="checkbox" id="lyAc"> Aircraft</label>
+          <label><input type="checkbox" id="lyEq" checked> Earthquakes</label>
+        </div>
+      </div>
+    </section>
+
+    <!-- CAMERAS -->
+    <section class="view" data-view="cams" hidden>
+      <div class="sec-hd"><h2>Public cameras near you</h2><small id="camMeta"></small></div>
+      <div id="camKeyBox" class="card" hidden>
+        <div class="label">Turn on the live camera feed</div>
+        <p class="note" style="margin:8px 0 12px">Lookout pulls tens of thousands of public webcams (city, beach, ski, harbor, highway) from Windy. It needs a free key: sign up at <a href="https://api.windy.com/keys" target="_blank" rel="noopener">api.windy.com/keys</a>, choose "Webcams API", copy the key and paste it here. It stays on this device.</p>
+        <div class="field"><input id="camKey" placeholder="Paste Windy webcams key" autocomplete="off"><button class="btn" id="camKeySave">Save</button></div>
+      </div>
+      <div class="cams" id="camGrid"></div>
+      <div class="card">
+        <div class="label">Traffic cameras (state DOT)</div>
+        <p class="note" style="margin:6px 0 8px">Every state runs its own highway camera network. These open the official one for where you are.</p>
+        <div class="list" id="dotLinks"></div>
+      </div>
+    </section>
+
+    <!-- TRAFFIC -->
+    <section class="view full" data-view="traffic" hidden>
+      <div class="framewrap">
+        <div class="framebar">
+          <span class="grow">Live crashes, hazards, police and slowdowns reported by drivers</span>
+          <a class="iconbtn" id="wazeOpen" target="_blank" rel="noopener">Open Waze</a>
+        </div>
+        <iframe class="live" id="wazeFrame" title="Live traffic map" loading="lazy" allow="geolocation"></iframe>
+      </div>
+    </section>
+
+    <!-- SCANNER -->
+    <section class="view" data-view="scanner" hidden>
+      <h2>Police, fire and EMS radio</h2>
+      <div class="card">
+        <p class="note" style="margin:0 0 6px">Live scanner audio comes from volunteer feeds. Tap one to search feeds for <b id="scanArea">your area</b>.</p>
+        <div class="list" id="scanLinks"></div>
+      </div>
+      <h2>Incidents and public safety</h2>
+      <div class="card"><div class="list" id="safetyLinks"></div></div>
+    </section>
+
+    <!-- NEWS -->
+    <section class="view" data-view="news" hidden>
+      <div class="sec-hd"><h2>Local news</h2><small id="newsMeta"></small></div>
+      <div class="news" id="newsGrid"><div class="empty">Loading headlines…</div></div>
+      <div class="card"><div class="list" id="newsLinks"></div></div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section class="view" data-view="set" hidden>
+      <h2>Location</h2>
+      <div class="card">
+        <p class="note" style="margin:0 0 10px">Lookout uses your phone's location. To watch somewhere else, enter a ZIP code or a city.</p>
+        <div class="field"><input id="locInput" placeholder="ZIP code or City, ST"><button class="btn" id="locGo">Set</button></div>
+        <div style="margin-top:10px"><button class="btn ghost" id="locGps">Use my current location</button></div>
+      </div>
+      <h2>Cameras</h2>
+      <div class="card">
+        <div class="label" style="margin-bottom:6px">Public webcams (everywhere)</div>
+        <div class="field"><input id="camKey2" placeholder="Windy webcams key" autocomplete="off"><button class="btn" id="camKeySave2">Save</button></div>
+        <p class="note" style="margin-top:8px">Free key from <a href="https://api.windy.com/keys" target="_blank" rel="noopener">api.windy.com/keys</a> (choose "Webcams API"). Covers traffic, weather, scenic and harbor cams nationwide.</p>
+        <div class="label" style="margin:16px 0 6px">State DOT traffic cameras</div>
+        <div class="field"><input id="dotKey" placeholder="Georgia 511 developer key" autocomplete="off"><button class="btn" id="dotKeySave">Save</button></div>
+        <p class="note" style="margin-top:8px">For Georgia, a free developer key from <a href="https://511ga.org/developers" target="_blank" rel="noopener">511ga.org/developers</a> pulls in all GDOT highway cameras (dense around Atlanta and I‑75). Loads only when your location is in Georgia.</p>
+      </div>
+      <h2>Display</h2>
+      <div class="card">
+        <div class="field" style="flex-wrap:wrap">
+          <button class="btn ghost" data-theme-set="system">Match phone</button>
+          <button class="btn ghost" data-theme-set="dark">Dark</button>
+          <button class="btn ghost" data-theme-set="light">Light</button>
+        </div>
+      </div>
+      <p class="note">Data: National Weather Service, Open-Meteo, Iowa Environmental Mesonet radar, USGS, adsb.lol, Windy, Waze, GDELT. Refreshes every 5 minutes.</p>
+    </section>
+  </main>
+
+  <nav id="nav">
+    <button data-tab="home" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Now<span class="dot" id="alertDot" hidden></span></button>
+    <button data-tab="map"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/></svg>Map</button>
+    <button data-tab="cams"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3"/></svg>Cams</button>
+    <button data-tab="traffic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 17h14M7 17V9l2-4h6l2 4v8"/><circle cx="8" cy="17" r="2"/><circle cx="16" cy="17" r="2"/></svg>Traffic</button>
+    <button data-tab="scanner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="7" width="12" height="15" rx="2"/><path d="M10 7V2M10 12h4M10 16h4"/></svg>Scanner</button>
+    <button data-tab="news"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h10M7 16h6"/></svg>News</button>
+  </nav>
+</div>
+
+<button class="fab" id="fabCam" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3"/></svg>Nearest camera</button>
+
+<!-- CAMERA VIEWER -->
+<div class="viewer" id="viewer" hidden>
+  <div class="vbox">
+    <div class="vhd">
+      <span class="t"><b id="vTitle">—</b><small id="vSub"></small></span>
+      <button id="vClose" aria-label="Close">✕</button>
+    </div>
+    <div style="position:relative">
+      <img class="vimg" id="vImg" alt="Live camera view">
+      <button class="vnav prev" id="vPrev" aria-label="Previous camera">‹</button>
+      <button class="vnav next" id="vNext" aria-label="Next camera">›</button>
+    </div>
+    <div class="vft">
+      <span class="grow" id="vStamp">Refreshing…</span>
+      <a class="iconbtn" id="vOpen" target="_blank" rel="noopener">Open live feed ↗</a>
+    </div>
+  </div>
+</div>
+
+<!-- DRIVE MODE -->
+<div class="drive" id="drive" hidden>
+  <div class="top"><div class="brand"><i></i><span>Lookout · Drive</span></div><button class="btn ghost" id="driveExit">Exit</button></div>
+  <div class="clock" id="dClock">--:--</div>
+  <div><div class="dtemp num" id="dTemp">--°</div><div class="dcond" id="dCond"></div></div>
+  <div class="dalert" id="dAlert">No weather warnings</div>
+  <div class="spacer"></div>
+  <div class="dmeta"><span id="dWind">Wind --</span><span id="dSun">--</span><span id="dLoc"></span></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+(() => {
+"use strict";
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem("lookout."+k); return v==null?d:JSON.parse(v);}catch(e){return d;} },
+  set(k, v){ try{ localStorage.setItem("lookout."+k, JSON.stringify(v)); }catch(e){} }
+};
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const toast = msg => { const t=document.createElement("div"); t.className="toast"; t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),3500); };
+async function getJSON(url, opts={}, timeout=15000){
+  const ctl = new AbortController(); const id = setTimeout(()=>ctl.abort(), timeout);
+  try{ const r = await fetch(url, {...opts, signal: ctl.signal}); if(!r.ok) throw new Error(r.status); return await r.json(); }
+  finally{ clearTimeout(id); }
+}
+const fmtTime = d => d.toLocaleTimeString([], {hour:"numeric", minute:"2-digit"});
+const kmBetween = (a,b,c,d) => { const R=6371,r=Math.PI/180; const x=Math.sin((c-a)*r/2)**2+Math.cos(a*r)*Math.cos(c*r)*Math.sin((d-b)*r/2)**2; return 2*R*Math.asin(Math.sqrt(x)); };
+const compass = deg => ["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"][Math.round(((deg%360)+360)%360/22.5)%16];
+const bearing = (a,b,c,d) => { const r=Math.PI/180; const y=Math.sin((d-b)*r)*Math.cos(c*r); const x=Math.cos(a*r)*Math.sin(c*r)-Math.sin(a*r)*Math.cos(c*r)*Math.cos((d-b)*r); return (Math.atan2(y,x)/r+360)%360; };
+const miles = km => km*0.621371;
+
+const WMO = {0:"Clear",1:"Mostly clear",2:"Partly cloudy",3:"Overcast",45:"Fog",48:"Freezing fog",51:"Light drizzle",53:"Drizzle",55:"Heavy drizzle",56:"Freezing drizzle",57:"Freezing drizzle",61:"Light rain",63:"Rain",65:"Heavy rain",66:"Freezing rain",67:"Freezing rain",71:"Light snow",73:"Snow",75:"Heavy snow",77:"Snow grains",80:"Rain showers",81:"Rain showers",82:"Violent showers",85:"Snow showers",86:"Heavy snow showers",95:"Thunderstorms",96:"Storms with hail",99:"Storms with hail"};
+const wxGlyph = c => c===0||c===1?"☀︎":c<=3?"⛅︎":c<=48?"≋":c<=67||(c>=80&&c<=82)?"☂︎":c<=86?"❄︎":"ϟ";
+const SEV = {Extreme:"var(--bad)",Severe:"var(--bad)",Moderate:"var(--warn)",Minor:"var(--info)",Unknown:"var(--info)"};
+const aqiLabel = a => a==null?["--",""]:a<=50?[a,"ok"]:a<=100?[a,"warn"]:[a,"bad"];
+
+/* ---------- sky gradient (shifts with weather + time of day) ---------- */
+const PHASE_GRAD = {
+  day:"linear-gradient(165deg,#2b7fcc 0%,#5aa6e3 46%,#9fcdee 100%)",
+  dawn:"linear-gradient(165deg,#3a4a7a 0%,#9c6a9a 48%,#e6a071 100%)",
+  dusk:"linear-gradient(165deg,#222a55 0%,#5b4a86 50%,#d87a52 100%)",
+  night:"linear-gradient(165deg,#070c1e 0%,#121d3c 55%,#1f2d52 100%)"
+};
+const WX_VEIL = {
+  clear:"", pcloud:"linear-gradient(180deg,rgba(255,255,255,.05),rgba(120,135,150,.14))",
+  cloud:"linear-gradient(180deg,rgba(92,104,117,.42),rgba(70,82,95,.5))",
+  rain:"linear-gradient(180deg,rgba(58,70,86,.55),rgba(40,52,68,.6))",
+  storm:"linear-gradient(180deg,rgba(30,34,48,.62),rgba(18,22,34,.68))",
+  snow:"linear-gradient(180deg,rgba(210,220,230,.38),rgba(182,196,212,.42))",
+  fog:"linear-gradient(180deg,rgba(150,160,170,.5),rgba(132,144,156,.55))"
+};
+function skyState(){
+  let phase="day";
+  try{
+    const now=Date.now();
+    const sr=S.wx&&S.wx.daily&&new Date(S.wx.daily.sunrise[0]).getTime();
+    const ss=S.wx&&S.wx.daily&&new Date(S.wx.daily.sunset[0]).getTime();
+    if(sr&&ss){
+      const h=3600*1000;
+      if(now<sr-h||now>ss+h) phase="night";
+      else if(now<sr+h) phase="dawn";
+      else if(now>ss-h) phase="dusk";
+      else phase="day";
+    }else{
+      const hr=new Date().getHours();
+      phase=(hr<6||hr>=20)?"night":(hr<8?"dawn":(hr>=18?"dusk":"day"));
+    }
+  }catch(e){}
+  let wx="clear";
+  const c=S.wx&&S.wx.current;
+  if(c){
+    const code=c.weather_code;
+    if(code>=95) wx="storm";
+    else if((code>=51&&code<=67)||(code>=80&&code<=82)) wx="rain";
+    else if((code>=71&&code<=77)||code===85||code===86) wx="snow";
+    else if(code>=45&&code<=48) wx="fog";
+    else if(code>=3) wx="cloud";
+    else if(code>=1) wx="pcloud";
+  }
+  return {phase,wx};
+}
+function applySky(){
+  const hero=$("#wxHero"); if(!hero) return;
+  const {phase,wx}=skyState();
+  const veil=WX_VEIL[wx]||"";
+  hero.style.background = veil ? veil+","+PHASE_GRAD[phase] : PHASE_GRAD[phase];
+  hero.dataset.sky = phase+" "+wx;
+}
+
+const STATE_511 = {AL:"https://algotraffic.com",AK:"https://511.alaska.gov",AZ:"https://az511.gov",AR:"https://idrivearkansas.com",CA:"https://cwwp2.dot.ca.gov/vm/iframemap.htm",CO:"https://maps.cotrip.org",CT:"https://ctroads.org",DE:"https://deldot.gov/map",FL:"https://fl511.com",GA:"https://511ga.org",HI:"https://goakamai.org",ID:"https://511.idaho.gov",IL:"https://www.gettingaroundillinois.com",IN:"https://511in.org",IA:"https://511ia.org",KS:"https://kandrive.gov",KY:"https://goky.ky.gov",LA:"https://511la.org",ME:"https://newengland511.org",MD:"https://chart.maryland.gov",MA:"https://mass511.com",MI:"https://mdotjboss.state.mi.us/MiDrive/map",MN:"https://511mn.org",MS:"https://mdottraffic.com",MO:"https://traveler.modot.org/map",MT:"https://www.511mt.net",NE:"https://new.511.nebraska.gov",NV:"https://nvroads.com",NH:"https://newengland511.org",NJ:"https://511nj.org",NM:"https://nmroads.com",NY:"https://511ny.org",NC:"https://drivenc.gov",ND:"https://travelfiles.dot.nd.gov",OH:"https://ohgo.com",OK:"https://oktraffic.org",OR:"https://tripcheck.com",PA:"https://511pa.com",RI:"https://www.dot.ri.gov/travel",SC:"https://511sc.org",SD:"https://sd511.org",TN:"https://smartway.tn.gov",TX:"https://drivetexas.org",UT:"https://udottraffic.utah.gov",VT:"https://newengland511.org",VA:"https://511.vdot.virginia.gov",WA:"https://wsdot.com/travel/real-time/map",WV:"https://wv511.org",WI:"https://511wi.gov",WY:"https://map.wyoroad.info",DC:"https://ddot.dc.gov"};
+
+const S = { lat:null, lon:null, city:"", state:"", county:"", alerts:[], wx:null, cams:[], camsW:[], camsD:[], ac:[], eq:[], alertGeo:null };
+
+/* ---------- theme ---------- */
+function applyTheme(t){ if(t==="system") document.documentElement.removeAttribute("data-theme"); else document.documentElement.setAttribute("data-theme",t); }
+applyTheme(store.get("theme","system"));
+$$("[data-theme-set]").forEach(b=>b.onclick=()=>{ const t=b.dataset.themeSet; store.set("theme",t); applyTheme(t); setBase(); });
+
+/* ---------- tabs ---------- */
+let mapReady=false;
+function show(tab){
+  $$("[data-view]").forEach(v=>v.hidden = v.dataset.view!==tab);
+  $$("#nav button").forEach(b=>b.dataset.tab===tab?b.setAttribute("aria-current","page"):b.removeAttribute("aria-current"));
+  $("#main").scrollTop=0;
+  if(tab==="home"){ initMini(); setTimeout(()=>mini&&mini.invalidateSize(),60); }
+  if(tab==="map"){ initMap(); setTimeout(()=>map&&map.invalidateSize(),60); }
+  if(tab==="traffic") loadWaze();
+  if(tab==="news" && !S.newsLoaded) loadNews();
+  store.set("tab",tab);
+}
+$$("#nav button").forEach(b=>b.onclick=()=>show(b.dataset.tab));
+$$("[data-go]").forEach(a=>a.onclick=e=>{e.preventDefault();show(a.dataset.go);});
+
+/* ---------- location ---------- */
+async function reverse(lat,lon){
+  try{
+    const j = await getJSON(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
+    S.city = j.city || j.locality || "";
+    S.state = (j.principalSubdivisionCode||"").replace("US-","");
+    const admin = (j.localityInfo&&j.localityInfo.administrative)||[];
+    const cty = admin.find(a=>/county|parish|borough/i.test(a.name||"") || a.adminLevel===6);
+    S.county = cty ? cty.name : "";
+  }catch(e){}
+}
+function setLocUI(){
+  $("#locName").textContent = S.city ? `${S.city}${S.state?", "+S.state:""}` : `${S.lat.toFixed(3)}, ${S.lon.toFixed(3)}`;
+  $("#locMeta").textContent = `${S.lat.toFixed(4)}°, ${S.lon.toFixed(4)}°${S.county?" · "+S.county:""}`;
+  updateNeedLoc();
+}
+function updateNeedLoc(){ const n=$("#needLoc"); if(n) n.hidden = S.lat!=null; }
+async function setLocation(lat,lon,name,state){
+  S.lat=+lat; S.lon=+lon; S.city=name||""; S.state=state||""; S.county="";
+  if(!name) await reverse(S.lat,S.lon); else reverse(S.lat,S.lon).then(()=>{ if(name){S.city=name;} if(state){S.state=state;} setLocUI(); buildLinks(); });
+  store.set("loc",{lat:S.lat,lon:S.lon,city:S.city,state:S.state});
+  setLocUI(); buildLinks(); S.newsLoaded=false; S.wazeFor=null;
+  refreshAll();
+  if(map){ map.setView([S.lat,S.lon], 10); meMarker.setLatLng([S.lat,S.lon]); }
+  if(mini){ mini.setView([S.lat,S.lon],9); miniMe&&miniMe.setLatLng([S.lat,S.lon]); drawMiniCams(); } else { initMini(); }
+  const cur=store.get("tab","home"); if(cur==="map"||cur==="traffic") show(cur);
+}
+function gps(){
+  if(!navigator.geolocation){ toast("This browser can't share location. Enter a ZIP in Setup."); return; }
+  $("#locName").textContent="Finding you…";
+  navigator.geolocation.getCurrentPosition(
+    p=>setLocation(p.coords.latitude,p.coords.longitude),
+    ()=>{ const s=store.get("loc",null); if(s) setLocation(s.lat,s.lon,s.city,s.state); else { $("#locName").textContent="Set location"; $("#locMeta").textContent="Tap here or enter a ZIP"; updateNeedLoc(); show("home"); $("#main").scrollTop=0; } toast("Location is off — enter a ZIP to continue."); },
+    {enableHighAccuracy:true,timeout:12000,maximumAge:300000});
+}
+async function lookup(q){
+  q=q.trim(); if(!q) return;
+  try{
+    if(/^\d{5}$/.test(q)){
+      const j=await getJSON(`https://api.zippopotam.us/us/${q}`); const p=j.places[0];
+      return setLocation(p.latitude,p.longitude,p["place name"],p["state abbreviation"]);
+    }
+    const [name,st]=q.split(",").map(s=>s.trim());
+    const j=await getJSON(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(name)}&count=10&countryCode=US&language=en`);
+    let r=(j.results||[]); if(st) r=r.filter(x=>(x.admin1||"").toLowerCase().startsWith(st.toLowerCase())||abbr(x.admin1)===st.toUpperCase()).concat(r);
+    if(!r.length) throw 0;
+    setLocation(r[0].latitude,r[0].longitude,r[0].name,abbr(r[0].admin1)); show("home");
+  }catch(e){ toast("Couldn't find that place. Try a 5-digit ZIP."); }
+}
+const STATES={Alabama:"AL",Alaska:"AK",Arizona:"AZ",Arkansas:"AR",California:"CA",Colorado:"CO",Connecticut:"CT",Delaware:"DE",Florida:"FL",Georgia:"GA",Hawaii:"HI",Idaho:"ID",Illinois:"IL",Indiana:"IN",Iowa:"IA",Kansas:"KS",Kentucky:"KY",Louisiana:"LA",Maine:"ME",Maryland:"MD",Massachusetts:"MA",Michigan:"MI",Minnesota:"MN",Mississippi:"MS",Missouri:"MO",Montana:"MT",Nebraska:"NE",Nevada:"NV","New Hampshire":"NH","New Jersey":"NJ","New Mexico":"NM","New York":"NY","North Carolina":"NC","North Dakota":"ND",Ohio:"OH",Oklahoma:"OK",Oregon:"OR",Pennsylvania:"PA","Rhode Island":"RI","South Carolina":"SC","South Dakota":"SD",Tennessee:"TN",Texas:"TX",Utah:"UT",Vermont:"VT",Virginia:"VA",Washington:"WA","West Virginia":"WV",Wisconsin:"WI",Wyoming:"WY","District of Columbia":"DC"};
+const abbr = n => STATES[n]||n||"";
+$("#locGo").onclick=()=>lookup($("#locInput").value);
+$("#locInput").onkeydown=e=>{ if(e.key==="Enter") lookup(e.target.value); };
+$("#locGps").onclick=()=>{ gps(); show("home"); };
+$("#btnSet").onclick=()=>show("set");
+$("#locBtn").onclick=()=>show("set");
+$("#homeZipGo").onclick=()=>lookup($("#homeZip").value);
+$("#homeZip").onkeydown=e=>{ if(e.key==="Enter") lookup(e.target.value); };
+$("#homeGps").onclick=()=>gps();
+
+/* ---------- weather ---------- */
+async function loadWeather(){
+  try{
+    const u=`https://api.open-meteo.com/v1/forecast?latitude=${S.lat}&longitude=${S.lon}&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m&hourly=temperature_2m,precipitation_probability,weather_code&daily=sunrise,sunset,temperature_2m_max,temperature_2m_min&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto&forecast_days=2`;
+    const j=await getJSON(u); S.wx=j; const c=j.current;
+    $("#wxTemp").innerHTML=`${Math.round(c.temperature_2m)}<sup>°F</sup>`;
+    $("#wxCond").textContent=WMO[c.weather_code]||"—";
+    $("#wxFeels").textContent=`Feels like ${Math.round(c.apparent_temperature)}° · wind from the ${compass(c.wind_direction_10m)}`;
+    $("#wxWind").textContent=Math.round(c.wind_speed_10m);
+    $("#wxGust").textContent=Math.round(c.wind_gusts_10m);
+    $("#wxHum").textContent=Math.round(c.relative_humidity_2m)+"%";
+    $("#wxUpdated").textContent="Updated "+fmtTime(new Date());
+    const d=j.daily; $("#sunTimes").textContent=`${fmtTime(new Date(d.sunrise[0]))} / ${fmtTime(new Date(d.sunset[0]))}`;
+    $("#hiLo").textContent=`${Math.round(d.temperature_2m_max[0])}° / ${Math.round(d.temperature_2m_min[0])}°`;
+    const h=j.hourly, nowISO=c.time.slice(0,13); let i=h.time.findIndex(t=>t.slice(0,13)>=nowISO); if(i<0) i=0;
+    $("#wxHourly").innerHTML=h.time.slice(i,i+18).map((t,k)=>{const n=i+k; const hr=new Date(t); return `<div class="hr"><div>${k===0?"Now":hr.toLocaleTimeString([],{hour:"numeric"})}</div><div aria-hidden="true">${wxGlyph(h.weather_code[n])}</div><b>${Math.round(h.temperature_2m[n])}°</b><div class="pp">${h.precipitation_probability[n]??0}%</div></div>`;}).join("");
+    applySky();
+    updateDrive();
+  }catch(e){ $("#wxCond").textContent="Weather unavailable"; }
+  try{
+    const a=await getJSON(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${S.lat}&longitude=${S.lon}&current=us_aqi`);
+    const [v,cls]=aqiLabel(a.current&&a.current.us_aqi!=null?Math.round(a.current.us_aqi):null);
+    $("#wxAqi").innerHTML=`<span class="pill ${cls}" style="font-size:14px">${v}</span>`;
+  }catch(e){ $("#wxAqi").textContent="--"; }
+}
+let lastRefresh=0;
+function relAgo(){
+  if(!lastRefresh) return "standby";
+  const s=Math.max(0,Math.round((Date.now()-lastRefresh)/1000));
+  if(s<60) return "updated "+s+"s ago";
+  const m=Math.floor(s/60); if(m<60) return "updated "+m+"m ago";
+  return "updated "+Math.floor(m/60)+"h ago";
+}
+function updateGlance(){
+  const g=$("#glance"); if(!g) return;
+  let sev="ok", label="Clear", text="No active warnings in your area";
+  if(S.alerts===null){ sev="warn"; label="Link"; text="National Weather Service unreachable — retrying"; }
+  else if(S.alerts && S.alerts.length){
+    const a=S.alerts[0];
+    sev=/Severe|Extreme/.test(a.severity)?"bad":(a.severity==="Moderate"?"warn":"info");
+    label=/Severe|Extreme/.test(a.severity)?"Warning":"Advisory";
+    text=`${a.event}${S.alerts.length>1?`  ·  +${S.alerts.length-1} more active`:""}`;
+  } else {
+    const list=S.cams.filter(c=>c.lat!=null);
+    if(list.length){ const c=list[0]; sev="ok"; label="Nearest"; text=`${c.title} · ${miles(c.km).toFixed(1)} mi ${compass(bearing(S.lat,S.lon,c.lat,c.lon))}`; }
+    else if(S.wx&&S.wx.current){ const c=S.wx.current; sev="ok"; label="Conditions"; text=`${Math.round(c.temperature_2m)}° ${WMO[c.weather_code]||""} · wind ${Math.round(c.wind_speed_10m)} ${compass(c.wind_direction_10m)}`; }
+    else { sev="ok"; label="Status"; text="Acquiring feeds…"; }
+  }
+  g.dataset.sev=sev; $("#glanceLabel").textContent=label; $("#glanceText").textContent=text;
+  $("#glanceTime").textContent=relAgo();
+}
+setInterval(()=>{ const t=$("#glanceTime"); if(t) t.textContent=relAgo(); },1000);
+async function loadNWS(){
+  try{
+    const p=await getJSON(`https://api.weather.gov/points/${S.lat.toFixed(4)},${S.lon.toFixed(4)}`,{headers:{Accept:"application/geo+json"}});
+    const f=await getJSON(p.properties.forecast,{headers:{Accept:"application/geo+json"}});
+    $("#nwsFc").innerHTML=f.properties.periods.slice(0,4).map(x=>`<div class="kv" style="flex-direction:column;align-items:flex-start;gap:2px"><span style="color:var(--fg);font-weight:600">${esc(x.name)} · ${x.temperature}°${esc(x.temperatureUnit)}</span><span style="font-family:var(--body);text-align:left;color:var(--muted)">${esc(x.shortForecast)}. Wind ${esc(x.windSpeed)} ${esc(x.windDirection)}.</span></div>`).join("");
+  }catch(e){ $("#nwsFc").innerHTML=`<div class="empty">The detailed NWS forecast covers US locations only.</div>`; }
+}
+async function loadAlerts(){
+  try{
+    const j=await getJSON(`https://api.weather.gov/alerts/active?point=${S.lat.toFixed(4)},${S.lon.toFixed(4)}`,{headers:{Accept:"application/geo+json"}});
+    S.alerts=(j.features||[]).map(f=>({...f.properties,geometry:f.geometry})).sort((a,b)=>["Extreme","Severe","Moderate","Minor","Unknown"].indexOf(a.severity)-["Extreme","Severe","Moderate","Minor","Unknown"].indexOf(b.severity));
+  }catch(e){ S.alerts=null; }
+  renderAlerts(); updateDrive(); drawAlertAreas(); updateGlance();
+}
+function renderAlerts(){
+  const el=$("#alertsHome");
+  $("#alertDot").hidden=!(S.alerts&&S.alerts.length);
+  if(S.alerts===null){ el.innerHTML=`<div class="card allclear"><span class="pill">Offline</span><span class="note">Couldn't reach the National Weather Service. Will retry.</span></div>`; return; }
+  if(!S.alerts.length){ el.innerHTML=`<div class="card allclear"><span class="pill ok">All clear</span><span><span class="big">No active weather warnings</span><br><span class="note">National Weather Service, for your exact spot</span></span></div>`; return; }
+  el.innerHTML=`<div class="sec-hd" style="margin-bottom:8px"><h2>Active alerts</h2><small>${S.alerts.length} from NWS</small></div><div style="display:flex;flex-direction:column;gap:8px">`+
+    S.alerts.map((a,i)=>`<details class="alert" style="--sev:${SEV[a.severity]||"var(--warn)"}" ${i===0&&/Severe|Extreme/.test(a.severity)?"open":""}><summary><span class="stripe"></span><span class="ah"><b>${esc(a.event)}</b><small>Until ${a.expires?esc(new Date(a.ends||a.expires).toLocaleString([],{weekday:"short",hour:"numeric",minute:"2-digit"})):"further notice"} · <span class="pill ${/Severe|Extreme/.test(a.severity)?"bad":"warn"}">${esc(a.severity)}</span></small></span><span class="chev">⌄</span></summary><div class="ab"><b>${esc(a.headline||"")}</b><p>${esc(a.description||"")}</p>${a.instruction?`<p><b>What to do:</b> ${esc(a.instruction)}</p>`:""}</div></details>`).join("")+`</div>`;
+}
+
+/* ---------- cameras ---------- */
+function camKey(){ return store.get("windyKey",""); }
+function saveKey(v){ v=(v||"").trim(); if(!v) return; store.set("windyKey",v); $("#camKey").value=$("#camKey2").value=v; toast("Camera key saved"); loadCams(); }
+$("#camKeySave").onclick=()=>saveKey($("#camKey").value);
+$("#camKeySave2").onclick=()=>saveKey($("#camKey2").value);
+$("#camKey2").value=camKey();
+function saveDot(v){ v=(v||"").trim(); if(!v) return; store.set("gaKey",v); $("#dotKey").value=v; toast(S.state==="GA"?"Georgia DOT key saved":"Saved — loads when you're in Georgia"); loadGDOT(); }
+$("#dotKeySave").onclick=()=>saveDot($("#dotKey").value);
+$("#dotKey").value=dotKey();
+function dotKey(){ return store.get("gaKey",""); }
+async function loadCams(){
+  const key=camKey();
+  $("#camKeyBox").hidden=!!key;
+  if(!key){ S.camsW=[]; rebuildCams(); $("#camCount").textContent="add key"; return; }
+  try{
+    const j=await getJSON(`https://api.windy.com/webcams/api/v3/webcams?nearby=${S.lat.toFixed(4)},${S.lon.toFixed(4)},80&limit=50&include=images,location,player,urls&lang=en`,{headers:{"x-windy-api-key":key}});
+    S.camsW=(j.webcams||[]).map(w=>({id:"w"+w.webcamId,title:w.title,lat:w.location&&w.location.latitude,lon:w.location&&w.location.longitude,city:w.location&&w.location.city,img:w.images&&w.images.current&&(w.images.current.preview||w.images.current.thumbnail),live:!!(w.player&&(w.player.live||w.player.day)),url:(w.urls&&w.urls.detail)||`https://www.windy.com/webcams/${w.webcamId}`,source:"webcam",online:true}));
+  }catch(e){ S.camsW=[]; S.camErr=true; }
+  rebuildCams();
+}
+async function loadGDOT(){
+  const key=dotKey();
+  if(S.state!=="GA"||!key){ S.camsD=[]; return rebuildCams(); }
+  try{
+    const arr=await getJSON(`https://511ga.org/api/v2/get/cameras?key=${encodeURIComponent(key)}&format=json`,{},20000);
+    S.camsD=(arr||[]).filter(c=>c.Latitude&&c.Longitude)
+      .map(c=>({id:"g"+c.Id,title:c.Name||c.Location||c.Roadway,lat:c.Latitude,lon:c.Longitude,city:c.Location||c.Roadway,road:c.Roadway,dir:c.Direction,img:null,live:true,source:"GDOT",online:(c.Views&&c.Views[0]&&/enabled/i.test(c.Views[0].Status||""))!==false,url:(c.Views&&c.Views[0]&&c.Views[0].Url)||`https://511ga.org/map/Cctv/${c.Id}`}))
+      .filter(c=>kmBetween(S.lat,S.lon,c.lat,c.lon)<=100);
+    S.dotErr=false;
+  }catch(e){ S.camsD=[]; S.dotErr=true; }
+  rebuildCams();
+}
+function rebuildCams(){
+  S.cams=[...S.camsW,...S.camsD].map(c=>({...c,km:c.lat!=null?kmBetween(S.lat,S.lon,c.lat,c.lon):null})).sort((a,b)=>(a.km??1e9)-(b.km??1e9));
+  $("#camCount").textContent=S.cams.length||(camKey()?"0":"add key");
+  renderCamGrid(); drawCams(); renderNearby(); updateGlance(); if(mini) drawMiniCams();
+}
+function srcBadge(c){ return c.source==="GDOT"?'<span class="pill info" style="font-size:9px">DOT</span>':(c.live?'<span class="pill bad live">● Live</span>':'<span class="pill" style="font-size:9px">Snapshot</span>'); }
+function renderCamGrid(){
+  const g=$("#camGrid"); if(!g) return;
+  const nW=S.camsW.length, nD=S.camsD.length;
+  $("#camMeta").textContent=S.cams.length?`${S.cams.length} within reach${nD?` · ${nD} GDOT`:""}`:"";
+  if(!camKey()&&!dotKey()){ g.innerHTML=""; return; }
+  if(!S.cams.length){ g.innerHTML=`<div class="empty">No cameras with a location nearby. ${S.state==="GA"?"Add a Georgia 511 key in Setup for highway cams, or the ":"The "}state DOT map below has more.</div>`; return; }
+  g.innerHTML=S.cams.map((c,i)=>`<a class="cam" data-cam="${i}" href="${esc(c.url)}" ${c.img?"":'target="_blank" rel="noopener"'}><div class="img" style="background-image:url('${esc(c.img||"")}')">${srcBadge(c)}</div><div class="cap"><b>${esc(c.title)}</b><small>${c.km!=null?miles(c.km).toFixed(1)+" mi "+compass(bearing(S.lat,S.lon,c.lat,c.lon)):""}${c.road?" · "+esc(c.road):""}</small></div></a>`).join("");
+  $$("#camGrid .cam").forEach(a=>{ const c=S.cams[+a.dataset.cam]; if(c.img){ a.onclick=e=>{e.preventDefault();openViewer(located().indexOf(c));}; } });
+}
+
+/* ---------- nearest cameras portal + inline viewer ---------- */
+function located(){ return S.cams.filter(c=>c.lat!=null); }
+function renderNearby(){
+  const list=located();
+  $("#fabCam").hidden=!list.length;
+  const el=$("#nearList");
+  if(!camKey()&&!dotKey()){ el.innerHTML=`<div class="empty">Add a free camera key in <a href="#" id="nearSetup">Setup</a> to light this up.</div>`; const s=$("#nearSetup"); if(s) s.onclick=e=>{e.preventDefault();show("set");}; $("#nearMeta").textContent=""; return; }
+  if(!list.length){ el.innerHTML=`<div class="empty">No public cameras with a location within 50 miles. Your state DOT map (Cams tab) has more.</div>`; $("#nearMeta").textContent=""; return; }
+  $("#nearMeta").textContent=`${list.length} located · closest first`;
+  el.innerHTML=list.slice(0,8).map((c,i)=>{
+    const br=compass(bearing(S.lat,S.lon,c.lat,c.lon));
+    const tag=c.source==="GDOT"?'<span class="lv" style="background:var(--info)">DOT</span>':(c.live?'<span class="lv">LIVE</span>':'');
+    return `<div class="near" data-cam="${i}"><span class="th" style="background-image:url('${esc(c.img||"")}')">${tag}</span><span class="t"><b>${esc(c.title)}</b><small>${esc(c.road||c.city||"")}${c.dir&&c.dir!=="None"?" · "+esc(c.dir):""}</small></span><span class="dist">${miles(c.km).toFixed(1)} mi<small>${br}</small></span></div>`;
+  }).join("");
+  $$("#nearList .near").forEach(n=>n.onclick=()=>openViewer(+n.dataset.cam));
+}
+let vIdx=0, vTimer=null;
+function openViewer(i){
+  const list=located(); if(!list.length) return;
+  vIdx=(i+list.length)%list.length; const c=list[vIdx];
+  if(!c.img){ window.open(c.url,"_blank","noopener"); return; }
+  $("#viewer").hidden=false;
+  $("#vTitle").textContent=c.title;
+  $("#vSub").textContent=`${miles(c.km).toFixed(1)} mi ${compass(bearing(S.lat,S.lon,c.lat,c.lon))}${c.city?" · "+c.city:""}`;
+  $("#vOpen").href=c.url;
+  const refresh=()=>{ if($("#viewer").hidden) return; $("#vImg").src=(c.img||"")+(c.img&&c.img.includes("?")?"&":"?")+"t="+Date.now(); $("#vStamp").textContent="Snapshot refreshed "+fmtTime(new Date())+" · updates every few seconds"; };
+  refresh(); clearInterval(vTimer); vTimer=setInterval(refresh,8000);
+}
+function closeViewer(){ $("#viewer").hidden=true; clearInterval(vTimer); }
+$("#vClose").onclick=closeViewer;
+$("#viewer").onclick=e=>{ if(e.target.id==="viewer") closeViewer(); };
+$("#vPrev").onclick=()=>openViewer(vIdx-1);
+$("#vNext").onclick=()=>openViewer(vIdx+1);
+$("#fabCam").onclick=()=>openViewer(0);
+document.addEventListener("keydown",e=>{ if($("#viewer").hidden) return; if(e.key==="Escape")closeViewer(); if(e.key==="ArrowLeft")openViewer(vIdx-1); if(e.key==="ArrowRight")openViewer(vIdx+1); });
+
+/* ---------- aircraft + quakes ---------- */
+async function loadAircraft(){
+  try{
+    const j=await getJSON(`https://api.adsb.lol/v2/point/${S.lat.toFixed(4)}/${S.lon.toFixed(4)}/25`);
+    S.ac=(j.ac||[]).filter(a=>a.lat!=null);
+    $("#acCount").textContent=S.ac.length;
+  }catch(e){ S.ac=[]; $("#acCount").textContent="--"; }
+  drawAircraft();
+}
+async function loadQuakes(){
+  try{
+    const j=await getJSON("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson");
+    S.eq=j.features.filter(f=>kmBetween(S.lat,S.lon,f.geometry.coordinates[1],f.geometry.coordinates[0])<=300);
+    const big=S.eq.reduce((m,f)=>Math.max(m,f.properties.mag||0),0);
+    $("#eqCount").textContent=S.eq.length?`${S.eq.length} · max M${big.toFixed(1)}`:"0";
+  }catch(e){ S.eq=[]; $("#eqCount").textContent="--"; }
+  drawQuakes();
+}
+
+/* ---------- map ---------- */
+let map, base, radar, meMarker, camLayer, acLayer, eqLayer, alertLayer;
+function setBase(){
+  if(!map) return;
+  const dark = document.documentElement.dataset.theme==="dark" || (!document.documentElement.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches);
+  if(base) map.removeLayer(base);
+  base=L.tileLayer(`https://{s}.basemaps.cartocdn.com/${dark?"dark_all":"rastertiles/voyager"}/{z}/{x}/{y}{r}.png`,{maxZoom:19,subdomains:"abcd",attribution:'&copy; OpenStreetMap &copy; CARTO'}).addTo(map);
+  base.bringToBack();
+}
+function initMap(){
+  if(map||S.lat==null||typeof L==="undefined") return;
+  map=L.map("map",{zoomControl:true}).setView([S.lat,S.lon],9);
+  setBase();
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change",setBase);
+  radar=L.tileLayer("https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/nexrad-n0q-900913/{z}/{x}/{y}.png?t="+Date.now(),{opacity:.65,attribution:"Radar: Iowa Environmental Mesonet / NWS"});
+  meMarker=L.marker([S.lat,S.lon],{icon:L.divIcon({className:"",html:'<div class="me-icon"></div>',iconSize:[18,18],iconAnchor:[9,9]})}).addTo(map);
+  camLayer=L.layerGroup(); acLayer=L.layerGroup(); eqLayer=L.layerGroup(); alertLayer=L.layerGroup();
+  const bind=(id,layer)=>{ const cb=$(id); const f=()=>cb.checked?layer.addTo(map):map.removeLayer(layer); cb.onchange=f; f(); };
+  bind("#lyRadar",radar); bind("#lyCams",camLayer); bind("#lyAc",acLayer); bind("#lyEq",eqLayer); bind("#lyAlerts",alertLayer);
+  drawCams(); drawAircraft(); drawQuakes(); drawAlertAreas();
+}
+function drawCams(){ if(!camLayer) return; camLayer.clearLayers(); S.cams.forEach(c=>{ if(c.lat==null) return; L.circleMarker([c.lat,c.lon],{radius:7,color:"#f2b134",weight:2,fillOpacity:.8}).bindPopup(`<b>${esc(c.title)}</b>${c.img?`<img src="${esc(c.img)}" width="220" alt="">`:""}<a href="${esc(c.url)}" target="_blank" rel="noopener">Open camera</a>`).addTo(camLayer); }); }
+function drawAircraft(){ if(!acLayer) return; acLayer.clearLayers(); S.ac.forEach(a=>{ L.marker([a.lat,a.lon],{icon:L.divIcon({className:"",html:`<div class="ac-icon" style="transform:rotate(${(a.track||0)-45}deg)">✈︎</div>`,iconSize:[18,18],iconAnchor:[9,9]})}).bindPopup(`<b>${esc((a.flight||a.r||a.hex||"").trim())}</b><br>${esc(a.t||"")} · ${a.alt_baro==="ground"?"on ground":(a.alt_baro||"?")+" ft"} · ${a.gs?Math.round(a.gs)+" kt":""}<br><a href="https://globe.adsb.lol/?icao=${esc(a.hex)}" target="_blank" rel="noopener">Track it</a>`).addTo(acLayer); }); }
+function drawQuakes(){ if(!eqLayer) return; eqLayer.clearLayers(); S.eq.forEach(f=>{ const [lo,la]=f.geometry.coordinates, m=f.properties.mag||0; L.circleMarker([la,lo],{radius:4+m*3,color:"#ff5c5c",weight:1,fillOpacity:.35}).bindPopup(`<b>M${m.toFixed(1)}</b> ${esc(f.properties.place)}<br>${new Date(f.properties.time).toLocaleString()}<br><a href="${esc(f.properties.url)}" target="_blank" rel="noopener">USGS details</a>`).addTo(eqLayer); }); }
+function drawAlertAreas(){ if(!alertLayer||!S.alerts) return; alertLayer.clearLayers(); S.alerts.forEach(a=>{ if(!a.geometry) return; L.geoJSON(a.geometry,{style:{color:/Severe|Extreme/.test(a.severity)?"#ff5c5c":"#f2b134",weight:2,fillOpacity:.15}}).bindPopup(`<b>${esc(a.event)}</b><br>${esc(a.headline||"")}`).addTo(alertLayer); }); }
+
+/* ---------- home mini map (read-only preview) ---------- */
+const RADAR_URL="https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/nexrad-n0q-900913/{z}/{x}/{y}.png?t=";
+let mini,miniBase,miniRadar,miniMe,miniCam;
+function setMiniBase(){
+  if(!mini) return;
+  const dark=document.documentElement.dataset.theme==="dark"||(!document.documentElement.dataset.theme&&matchMedia("(prefers-color-scheme: dark)").matches);
+  if(miniBase) mini.removeLayer(miniBase);
+  miniBase=L.tileLayer(`https://{s}.basemaps.cartocdn.com/${dark?"dark_all":"rastertiles/voyager"}/{z}/{x}/{y}{r}.png`,{maxZoom:19,subdomains:"abcd",attribution:'&copy; CARTO'}).addTo(mini);
+  miniBase.bringToBack();
+}
+function drawMiniCams(){ if(!miniCam) return; miniCam.clearLayers(); S.cams.slice(0,40).forEach(c=>{ if(c.lat==null) return; L.circleMarker([c.lat,c.lon],{radius:5,color:"#f2b134",weight:2,fillOpacity:.85,interactive:false}).addTo(miniCam); }); if(S.alerts) S.alerts.forEach(a=>{ if(!a.geometry) return; L.geoJSON(a.geometry,{interactive:false,style:{color:/Severe|Extreme/.test(a.severity)?"#ff5c5c":"#f2b134",weight:1.5,fillOpacity:.12}}).addTo(miniCam); }); }
+function initMini(){
+  if(mini||S.lat==null||typeof L==="undefined"||!document.getElementById("miniMap")) return;
+  mini=L.map("miniMap",{zoomControl:false,dragging:false,scrollWheelZoom:false,doubleClickZoom:false,boxZoom:false,keyboard:false,touchZoom:false,tap:false,attributionControl:true}).setView([S.lat,S.lon],9);
+  setMiniBase();
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change",setMiniBase);
+  miniRadar=L.tileLayer(RADAR_URL+Date.now(),{opacity:.6}).addTo(mini);
+  miniMe=L.marker([S.lat,S.lon],{icon:L.divIcon({className:"",html:'<div class="me-icon"></div>',iconSize:[18,18],iconAnchor:[9,9]})}).addTo(mini);
+  miniCam=L.layerGroup().addTo(mini);
+  drawMiniCams();
+  setTimeout(()=>mini.invalidateSize(),40);
+}
+function updateMini(){
+  if(!mini){ initMini(); return; }
+  if(miniRadar) miniRadar.setUrl(RADAR_URL+Date.now());
+  if(miniMe) miniMe.setLatLng([S.lat,S.lon]);
+  mini.setView([S.lat,S.lon],mini.getZoom());
+  drawMiniCams();
+  setTimeout(()=>mini.invalidateSize(),40);
+}
+$("#miniTap").onclick=()=>show("map");
+
+/* ---------- traffic ---------- */
+function loadWaze(){
+  if(S.lat==null) return;
+  const key=S.lat.toFixed(3)+","+S.lon.toFixed(3); if(S.wazeFor===key) return; S.wazeFor=key;
+  $("#wazeFrame").src=`https://embed.waze.com/iframe?zoom=12&lat=${S.lat}&lon=${S.lon}&ct=livemap&pin=1`;
+  $("#wazeOpen").href=`https://www.waze.com/live-map/directions?latlng=${S.lat}%2C${S.lon}`;
+}
+
+/* ---------- news ---------- */
+async function loadNews(){
+  S.newsLoaded=true;
+  const place=S.city||S.county; if(!place){ $("#newsGrid").innerHTML=`<div class="empty">Set a location to see local news.</div>`; return; }
+  const stName=Object.keys(STATES).find(k=>STATES[k]===S.state)||"";
+  $("#newsMeta").textContent=`${place}${S.state?", "+S.state:""} · last 3 days`;
+  try{
+    const q=encodeURIComponent(`"${place}" ${stName?`"${stName}"`:""} sourcecountry:US sourcelang:english`);
+    const j=await getJSON(`https://api.gdeltproject.org/api/v2/doc/doc?query=${q}&mode=artlist&maxrecords=30&format=json&sort=datedesc&timespan=3d`,{},20000);
+    const seen=new Set(); const arts=(j.articles||[]).filter(a=>{const k=a.title.toLowerCase().slice(0,60); if(seen.has(k)) return false; seen.add(k); return true;});
+    $("#newsGrid").innerHTML=arts.length?arts.map(a=>{const s=a.seendate||""; const d=s?new Date(`${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6,8)}T${s.slice(9,11)}:${s.slice(11,13)}:00Z`):null; return `<a class="story" href="${esc(a.url)}" target="_blank" rel="noopener"><span class="th" style="background-image:url('${esc(a.socialimage||"")}')"></span><span style="min-width:0"><b>${esc(a.title)}</b><small>${esc(a.domain)}${d?" · "+d.toLocaleString([],{weekday:"short",hour:"numeric",minute:"2-digit"}):""}</small></span></a>`;}).join(""):`<div class="empty">No stories found in the last 3 days. Try the links below.</div>`;
+  }catch(e){ $("#newsGrid").innerHTML=`<div class="empty">The headline feed is busy right now. The links below always work.</div>`; S.newsLoaded=false; }
+}
+
+/* ---------- links ---------- */
+const ICON={radio:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="7" width="12" height="15" rx="2"/><path d="M10 7V2M10 12h4M10 16h4"/></svg>',
+  shield:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></svg>',
+  bolt:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg>',
+  fire:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c4 0 7-3 7-7 0-5-5-7-5-12-3 2-4 5-4 7-1-1-2-2-2-4-2 2-3 5-3 9 0 4 3 7 7 7z"/></svg>',
+  cam:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3"/></svg>',
+  news:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h10M7 16h6"/></svg>'};
+const row=(ic,title,sub,url)=>`<a class="row" href="${esc(url)}" target="_blank" rel="noopener"><span class="ic">${ICON[ic]}</span><span class="t"><b>${esc(title)}</b><small>${esc(sub)}</small></span><span class="go">↗</span></a>`;
+function buildLinks(){
+  const place=[S.city,S.state].filter(Boolean).join(", "); const cty=[S.county,S.state].filter(Boolean).join(" ");
+  $("#scanArea").textContent=S.county||place||"your area";
+  $("#scanLinks").innerHTML=
+    row("radio","Broadcastify",`Largest scanner directory · search "${S.county||S.city}"`,`https://www.broadcastify.com/listen/`)+
+    row("radio","OpenMHz","Recorded dispatch calls you can replay",`https://openmhz.com/systems`)+
+    row("radio","Search scanner feeds",cty||place,`https://www.google.com/search?q=${encodeURIComponent((cty||place)+" police scanner live")}`);
+  $("#safetyLinks").innerHTML=
+    row("shield","Citizen","Real-time 911 incident alerts (major metros)","https://citizen.com/explore")+
+    row("shield","Recent crime map",place,`https://www.crimemapping.com/map/location/${encodeURIComponent(place)}`)+
+    row("bolt","Power outages",`Outages by county in ${S.state||"your state"}`,`https://poweroutage.us/area/state/${encodeURIComponent((Object.keys(STATES).find(k=>STATES[k]===S.state)||"").toLowerCase())}`)+
+    row("fire","Wildfires and red-flag areas","InciWeb · active incidents","https://inciweb.wildfire.gov/")+
+    row("shield","Emergency info for your county",cty,`https://www.google.com/search?q=${encodeURIComponent(cty+" emergency management alerts")}`);
+  const dot=STATE_511[S.state];
+  $("#dotLinks").innerHTML=(dot?row("cam",`${S.state} 511 traffic cameras`,"Official state DOT camera map",dot):"")+
+    row("cam","Find more traffic cameras",place,`https://www.google.com/search?q=${encodeURIComponent(place+" traffic cameras live")}`)+
+    row("cam","Windy webcam map","Browse every public webcam on a map",`https://www.windy.com/-Webcams/webcams?${S.lat},${S.lon},10`);
+  $("#newsLinks").innerHTML=row("news","Google News",place,`https://news.google.com/search?q=${encodeURIComponent(place)}&hl=en-US&gl=US&ceid=US:en`)+
+    row("news","Breaking now on Google News","Last hour",`https://news.google.com/search?q=${encodeURIComponent(place+" when:1h")}&hl=en-US&gl=US&ceid=US:en`);
+}
+
+/* ---------- drive mode ---------- */
+let wake=null, clockTimer=null;
+function updateDrive(){
+  const c=S.wx&&S.wx.current;
+  if(c){ $("#dTemp").textContent=Math.round(c.temperature_2m)+"°"; $("#dCond").textContent=WMO[c.weather_code]||""; $("#dWind").textContent=`Wind ${Math.round(c.wind_speed_10m)} ${compass(c.wind_direction_10m)}`; }
+  if(S.wx){ $("#dSun").textContent="Sunset "+fmtTime(new Date(S.wx.daily.sunset[0])); }
+  $("#dLoc").textContent=S.city||"";
+  const a=S.alerts&&S.alerts[0]; const el=$("#dAlert");
+  el.textContent=a?`${a.event}${S.alerts.length>1?`  +${S.alerts.length-1} more`:""}`:"No weather warnings";
+  el.style.setProperty("--sev",a?(SEV[a.severity]||"var(--warn)"):"var(--ok)");
+}
+async function openDrive(){
+  $("#drive").hidden=false; updateDrive();
+  const tick=()=>$("#dClock").textContent=new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit"}).replace(/\s?[AP]M/i,""); tick(); clockTimer=setInterval(tick,10000);
+  try{ wake=await navigator.wakeLock.request("screen"); }catch(e){}
+}
+function closeDrive(){ $("#drive").hidden=true; clearInterval(clockTimer); try{wake&&wake.release();}catch(e){} wake=null; }
+$("#btnDrive").onclick=openDrive; $("#driveExit").onclick=closeDrive;
+
+/* ---------- refresh loop ---------- */
+async function refreshAll(){
+  if(S.lat==null) return;
+  const b=$("#btnRefresh svg"); b.classList.add("spin");
+  await Promise.allSettled([loadWeather(),loadAlerts(),loadNWS(),loadCams(),loadGDOT(),loadAircraft(),loadQuakes()]);
+  lastRefresh=Date.now(); updateGlance(); updateMini();
+  if(radar) radar.setUrl("https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/nexrad-n0q-900913/{z}/{x}/{y}.png?t="+Date.now());
+  if(!$("[data-view=news]").hidden) loadNews();
+  b.classList.remove("spin");
+}
+$("#btnRefresh").onclick=refreshAll;
+setInterval(refreshAll,5*60*1000);
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden) refreshAll(); });
+
+/* ---------- boot ---------- */
+const saved=store.get("loc",null);
+if(saved){ S.lat=saved.lat; S.lon=saved.lon; S.city=saved.city; S.state=saved.state; setLocUI(); buildLinks(); refreshAll(); }
+updateNeedLoc();
+gps();
+show(store.get("tab","home"));
+})();
+</script>
+</body>
+</html>
