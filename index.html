@@ -390,6 +390,9 @@ iframe.live{flex:1;border:0;width:100%;background:var(--panel-2)}
         <div class="card">
           <div class="label">Around you</div>
           <div style="margin-top:6px">
+            <div class="kv"><span>Storm risk today</span><span id="stormRisk">--</span></div>
+            <div class="kv"><span>UV index</span><span id="uvNow">--</span></div>
+            <div class="kv"><span>Nearest river level</span><span id="riverNow">--</span></div>
             <div class="kv"><span>Sunrise / sunset</span><span id="sunTimes">--</span></div>
             <div class="kv"><span>Today high / low</span><span id="hiLo">--</span></div>
             <div class="kv"><span>Aircraft overhead (25 nm)</span><span id="acCount">--</span></div>
@@ -761,10 +764,65 @@ async function loadWeather(){
     updateDrive();
   }catch(e){ $("#wxCond").textContent="Weather unavailable"; }
   try{
-    const a=await getJSON(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${S.lat}&longitude=${S.lon}&current=us_aqi`);
+    const a=await getJSON(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${S.lat}&longitude=${S.lon}&current=us_aqi,uv_index`);
     const [v,cls]=aqiLabel(a.current&&a.current.us_aqi!=null?Math.round(a.current.us_aqi):null);
     $("#wxAqi").innerHTML=`<span class="pill ${cls}" style="font-size:14px">${v}</span>`;
+    const uv=a.current&&a.current.uv_index;
+    if(uv!=null){ const u=Math.round(uv); const uc=u<=2?"ok":u<=5?"":u<=7?"warn":"bad"; const ul=u<=2?"Low":u<=5?"Moderate":u<=7?"High":u<=10?"Very high":"Extreme"; $("#uvNow").innerHTML=`<span class="pill ${uc}">${u} ${ul}</span>`; }
+    else $("#uvNow").textContent="--";
   }catch(e){ $("#wxAqi").textContent="--"; }
+}
+/* Today's severe-weather (convective) risk from NOAA SPC — best effort */
+function pointInRings(lng,lat,rings){
+  let inside=false;
+  for(const ring of rings){
+    for(let i=0,j=ring.length-1;i<ring.length;j=i++){
+      const xi=ring[i][0],yi=ring[i][1],xj=ring[j][0],yj=ring[j][1];
+      if(((yi>lat)!==(yj>lat)) && (lng < (xj-xi)*(lat-yi)/(yj-yi)+xi)) inside=!inside;
+    }
+  }
+  return inside;
+}
+function pointInFeature(lng,lat,geom){
+  if(!geom) return false;
+  if(geom.type==="Polygon") return pointInRings(lng,lat,geom.coordinates);
+  if(geom.type==="MultiPolygon") return geom.coordinates.some(poly=>pointInRings(lng,lat,poly));
+  return false;
+}
+async function loadOutlook(){
+  try{
+    const j=await getJSON("https://www.spc.noaa.gov/products/outlook/day1otlk_cat.nolyr.geojson",{},20000);
+    const feats=(j.features||[]).filter(f=>pointInFeature(S.lon,S.lat,f.geometry));
+    // highest category covering the point
+    const order={"TSTM":1,"MRGL":2,"SLGT":3,"ENH":4,"MDT":5,"HIGH":6};
+    const names={"TSTM":"Thunderstorms possible","MRGL":"Marginal (1 of 5)","SLGT":"Slight (2 of 5)","ENH":"Enhanced (3 of 5)","MDT":"Moderate (4 of 5)","HIGH":"High (5 of 5)"};
+    const cls={"TSTM":"info","MRGL":"ok","SLGT":"warn","ENH":"warn","MDT":"bad","HIGH":"bad"};
+    let best=null;
+    feats.forEach(f=>{ const lv=(f.properties&&(f.properties.LABEL||f.properties.DN_LABEL||f.properties.dn))||""; if(order[lv]&&(!best||order[lv]>order[best])) best=lv; });
+    if(best) $("#stormRisk").innerHTML=`<span class="pill ${cls[best]}">${names[best]}</span>`;
+    else $("#stormRisk").innerHTML=`<span class="pill ok">None today</span>`;
+  }catch(e){ $("#stormRisk").textContent="—"; }
+}
+/* Nearest river / creek gauge from USGS — flash-flood awareness */
+async function loadRiver(){
+  try{
+    const d=0.45, bbox=[(S.lon-d).toFixed(3),(S.lat-d).toFixed(3),(S.lon+d).toFixed(3),(S.lat+d).toFixed(3)].join(",");
+    const j=await getJSON(`https://waterservices.usgs.gov/nwis/iv/?format=json&bBox=${bbox}&parameterCd=00065&siteStatus=active`,{},20000);
+    const ts=(j.value&&j.value.timeSeries)||[];
+    let best=null;
+    ts.forEach(t=>{
+      const loc=t.sourceInfo&&t.sourceInfo.geoLocation&&t.sourceInfo.geoLocation.geogLocation; if(!loc) return;
+      const vals=(t.values&&t.values[0]&&t.values[0].value)||[]; if(!vals.length) return;
+      const last=vals[vals.length-1], v=parseFloat(last.value); if(isNaN(v)||v<=-999) return;
+      const km=kmBetween(S.lat,S.lon,loc.latitude,loc.longitude);
+      const prev=vals.length>1?parseFloat(vals[vals.length-2].value):v;
+      const trend=v-prev>0.02?"↑":(v-prev<-0.02?"↓":"→");
+      const name=(t.sourceInfo.siteName||"").replace(/,?\s*(NEAR|AT)\s.*$/i,"").replace(/\b(\w)(\w*)/g,(m,a,b)=>a+b.toLowerCase());
+      if(!best||km<best.km) best={km,v,trend,name};
+    });
+    if(best) $("#riverNow").innerHTML=`${esc(best.name)} ${best.v.toFixed(1)} ft ${best.trend} <span style="color:var(--muted)">· ${miles(best.km).toFixed(0)} mi</span>`;
+    else $("#riverNow").textContent="none within 30 mi";
+  }catch(e){ $("#riverNow").textContent="--"; }
 }
 let lastRefresh=0;
 function relAgo(){
@@ -1051,7 +1109,7 @@ $("#btnDrive").onclick=openDrive; $("#driveExit").onclick=closeDrive;
 async function refreshAll(){
   if(S.lat==null) return;
   const b=$("#btnRefresh svg"); b.classList.add("spin");
-  await Promise.allSettled([loadWeather(),loadAlerts(),loadNWS(),loadCams(),loadGDOT(),loadAircraft(),loadQuakes()]);
+  await Promise.allSettled([loadWeather(),loadAlerts(),loadNWS(),loadCams(),loadGDOT(),loadAircraft(),loadQuakes(),loadOutlook(),loadRiver()]);
   lastRefresh=Date.now(); updateGlance(); updateMini();
   if(radar) radar.setUrl("https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/nexrad-n0q-900913/{z}/{x}/{y}.png?t="+Date.now());
   if(!$("[data-view=news]").hidden) loadNews();
