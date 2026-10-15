@@ -231,7 +231,10 @@ iframe.live{flex:1;border:0;width:100%;background:var(--panel-2)}
 
 /* ---------- Forms ---------- */
 .field{display:flex;gap:9px}
-.field input{flex:1;min-width:0;background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;transition:border-color .2s,box-shadow .2s}
+.field{flex-wrap:wrap}
+.field input{flex:1 1 180px;min-width:0;background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:14px;font-size:16px;transition:border-color .2s,box-shadow .2s}
+.field input:focus{border-color:var(--accent);outline:none}
+.field .btn{flex:0 0 auto}
 .field input:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 20%,transparent);outline:none}
 .btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:12px;padding:12px 18px;font:700 14px var(--display);letter-spacing:.01em;cursor:pointer;transition:transform .15s ease,filter .2s;box-shadow:var(--shadow-sm)}
 .btn:hover{filter:brightness(1.05)}
@@ -892,6 +895,7 @@ $("#camKey2").value=camKey();
 function saveDot(v){ v=(v||"").trim(); if(!v) return; store.set("gaKey",v); $("#dotKey").value=v; toast(S.state==="GA"?"Georgia DOT key saved":"Saved — loads when you're in Georgia"); loadGDOT(); }
 $("#dotKeySave").onclick=()=>saveDot($("#dotKey").value);
 $("#dotKeyInlineSave").onclick=saveDotInline;
+document.addEventListener("focusin",e=>{ if(e.target&&e.target.matches&&e.target.matches("input,textarea")) setTimeout(()=>{ try{e.target.scrollIntoView({block:"center",behavior:"smooth"});}catch(_){}} ,280); });
 $("#dotKey").value=dotKey();
 function dotKey(){ return store.get("gaKey",""); }
 async function loadCams(){
