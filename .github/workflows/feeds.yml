@@ -1,0 +1,41 @@
+name: Refresh camera feeds
+
+# Builds the cached camera data the Lookout page reads (Georgia DOT cameras and
+# incidents, Windy public webcams) and publishes it to the `feeds` branch.
+# Keys live only in this repo's Actions secrets: GA511_KEY and WINDY_KEY.
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: feeds
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch feeds
+        env:
+          GA511_KEY: ${{ secrets.GA511_KEY }}
+          WINDY_KEY: ${{ secrets.WINDY_KEY }}
+        run: python3 scripts/fetch_feeds.py out
+
+      - name: Publish to the feeds branch
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd out
+          git init -q
+          git checkout -q -b feeds
+          git add .
+          git -c user.name=lookout-feeds -c user.email=actions@users.noreply.github.com \
+            commit -qm "feeds $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git push -q --force "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}" feeds

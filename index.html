@@ -438,8 +438,8 @@ iframe.live{flex:1;border:0;width:100%;background:var(--panel-2)}
     <section class="view" data-view="cams" hidden>
       <div class="sec-hd"><h2>Public cameras near you</h2><small id="camMeta"></small></div>
       <div id="camKeyBox" class="card" hidden>
-        <div class="label">Turn on the live camera feed</div>
-        <p class="note" style="margin:8px 0 12px">Lookout pulls tens of thousands of public webcams (city, beach, ski, harbor, highway) from Windy. It needs a free key: sign up at <a href="https://api.windy.com/keys" target="_blank" rel="noopener">api.windy.com/keys</a>, choose "Webcams API", copy the key and paste it here. It stays on this device.</p>
+        <div class="label">Cameras are off on this device</div>
+        <p class="note" style="margin:8px 0 12px">One free key turns them on, about 2 minutes: open <a href="https://api.windy.com/keys" target="_blank" rel="noopener">api.windy.com/keys</a>, sign in (Google or Apple works), choose <b>Webcams API</b>, copy the key and paste it here. It stays on this device. Georgia DOT highway cameras are separate and switch on by themselves once the 511 key is approved.</p>
         <div class="field"><input id="camKey" placeholder="Paste Windy webcams key" autocomplete="off"><button class="btn" id="camKeySave">Save</button></div>
       </div>
       <div class="cams" id="camGrid"></div>
@@ -502,7 +502,7 @@ iframe.live{flex:1;border:0;width:100%;background:var(--panel-2)}
         <p class="note" style="margin-top:8px">Free key from <a href="https://api.windy.com/keys" target="_blank" rel="noopener">api.windy.com/keys</a> (choose "Webcams API"). Covers traffic, weather, scenic and harbor cams nationwide.</p>
         <div class="label" style="margin:16px 0 6px">State DOT traffic cameras</div>
         <div class="field"><input id="dotKey" placeholder="Georgia 511 developer key" autocomplete="off"><button class="btn" id="dotKeySave">Save</button></div>
-        <p class="note" style="margin-top:8px">For Georgia, a free developer key from <a href="https://511ga.org/developers" target="_blank" rel="noopener">511ga.org/developers</a> pulls in all GDOT highway cameras (dense around Atlanta and I‑75). Loads only when your location is in Georgia.</p>
+        <p class="note" style="margin-top:8px">For Georgia, a free developer key from <a href="https://511ga.org/developers" target="_blank" rel="noopener">511ga.org/developers</a> pulls in all GDOT highway cameras (dense around Atlanta and I‑75). Loads only when your location is in Georgia. Keys saved in the Lookout GitHub repo (Settings → Secrets → GA511_KEY / WINDY_KEY) feed every device automatically, so this box is only a fallback.</p>
       </div>
       <h2>Display</h2>
       <div class="card">
@@ -640,7 +640,9 @@ function applySky(){
 
 const STATE_511 = {AL:"https://algotraffic.com",AK:"https://511.alaska.gov",AZ:"https://az511.gov",AR:"https://idrivearkansas.com",CA:"https://cwwp2.dot.ca.gov/vm/iframemap.htm",CO:"https://maps.cotrip.org",CT:"https://ctroads.org",DE:"https://deldot.gov/map",FL:"https://fl511.com",GA:"https://511ga.org",HI:"https://goakamai.org",ID:"https://511.idaho.gov",IL:"https://www.gettingaroundillinois.com",IN:"https://511in.org",IA:"https://511ia.org",KS:"https://kandrive.gov",KY:"https://goky.ky.gov",LA:"https://511la.org",ME:"https://newengland511.org",MD:"https://chart.maryland.gov",MA:"https://mass511.com",MI:"https://mdotjboss.state.mi.us/MiDrive/map",MN:"https://511mn.org",MS:"https://mdottraffic.com",MO:"https://traveler.modot.org/map",MT:"https://www.511mt.net",NE:"https://new.511.nebraska.gov",NV:"https://nvroads.com",NH:"https://newengland511.org",NJ:"https://511nj.org",NM:"https://nmroads.com",NY:"https://511ny.org",NC:"https://drivenc.gov",ND:"https://travelfiles.dot.nd.gov",OH:"https://ohgo.com",OK:"https://oktraffic.org",OR:"https://tripcheck.com",PA:"https://511pa.com",RI:"https://www.dot.ri.gov/travel",SC:"https://511sc.org",SD:"https://sd511.org",TN:"https://smartway.tn.gov",TX:"https://drivetexas.org",UT:"https://udottraffic.utah.gov",VT:"https://newengland511.org",VA:"https://511.vdot.virginia.gov",WA:"https://wsdot.com/travel/real-time/map",WV:"https://wv511.org",WI:"https://511wi.gov",WY:"https://map.wyoroad.info",DC:"https://ddot.dc.gov"};
 
-const S = { lat:null, lon:null, city:"", state:"", county:"", alerts:[], wx:null, cams:[], camsW:[], camsD:[], ac:[], eq:[], alertGeo:null };
+const S = { lat:null, lon:null, city:"", state:"", county:"", alerts:[], wx:null, cams:[], camsW:[], camsC:[], camsD:[], ac:[], eq:[], alertGeo:null, feeds:{} };
+// Cached feeds built by GitHub Actions (.github/workflows/feeds.yml) — cameras work with no key on this device.
+const FEED_BASE="https://raw.githubusercontent.com/christophergates88/lookout/feeds/";
 
 /* ---------- theme ---------- */
 function applyTheme(t){ if(t==="system") document.documentElement.removeAttribute("data-theme"); else document.documentElement.setAttribute("data-theme",t); }
@@ -726,7 +728,7 @@ function onMove(lat,lon){
     lastFetchPt=[S.lat,S.lon]; lastFetchAt=now;
     store.set("loc",{lat:S.lat,lon:S.lon,city:S.city,state:S.state});
     reverse(S.lat,S.lon).then(()=>{ setLocUI(); buildLinks(); });
-    loadWeather(); loadAlerts(); loadCams(); loadGDOT(); loadAircraft(); lastRefresh=Date.now(); updateGlance();
+    loadWeather(); loadAlerts(); loadFeeds().then(()=>{ loadCams(); loadGDOT(); }); loadAircraft(); lastRefresh=Date.now(); updateGlance();
     if(radar) radar.setUrl("https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/nexrad-n0q-900913/{z}/{x}/{y}.png?t="+Date.now());
     if(miniRadar) miniRadar.setUrl(RADAR_URL+Date.now());
   }
@@ -898,19 +900,46 @@ $("#dotKeyInlineSave").onclick=saveDotInline;
 document.addEventListener("focusin",e=>{ if(e.target&&e.target.matches&&e.target.matches("input,textarea")) setTimeout(()=>{ try{e.target.scrollIntoView({block:"center",behavior:"smooth"});}catch(_){}} ,280); });
 $("#dotKey").value=dotKey();
 function dotKey(){ return store.get("gaKey",""); }
+function feedOK(f){ return !!(f&&f.updated); }
+function camsOn(){ return !!(camKey()||dotKey()||S.camsC.length||feedOK(S.feedGA)); }
+function ago(iso){ if(!iso) return ""; const m=Math.round((Date.now()-new Date(iso))/60000); return m<2?"just now":m<60?m+" min ago":Math.round(m/60)+"h ago"; }
+// Cached feeds (no key needed on this device). Built every 15 min by GitHub Actions from the official Windy and Georgia 511 APIs.
+async function loadFeeds(){
+  if(S.lat==null) return;
+  const t="?t="+Math.floor(Date.now()/300000);
+  const [w,g]=await Promise.allSettled([getJSON(FEED_BASE+"webcams.json"+t,{},12000),getJSON(FEED_BASE+"ga511.json"+t,{},12000)]);
+  if(w.status==="fulfilled"&&w.value&&Array.isArray(w.value.webcams)&&w.value.updated){
+    S.feeds.webcams=w.value.updated;
+    S.camsC=w.value.webcams.filter(c=>c.lat!=null&&kmBetween(S.lat,S.lon,c.lat,c.lon)<=130)
+      .map(c=>({id:"w"+c.id,title:c.title,lat:c.lat,lon:c.lon,city:c.city,img:c.img||null,live:!!c.live,url:c.url,source:"webcam",online:true}));
+  } else { S.camsC=[]; S.feeds.webcams=null; }
+  S.feedGA=(g.status==="fulfilled"&&g.value&&Array.isArray(g.value.cameras)&&g.value.updated)?g.value:null;
+}
 async function loadCams(){
   const key=camKey();
-  $("#camKeyBox").hidden=!!key;
-  if(!key){ S.camsW=[]; rebuildCams(); $("#camCount").textContent="add key"; return; }
+  $("#camKeyBox").hidden=!!key||S.camsC.length>0;
+  if(!key){ S.camsW=[]; rebuildCams(); return; }
   try{
     const j=await getJSON(`https://api.windy.com/webcams/api/v3/webcams?nearby=${S.lat.toFixed(4)},${S.lon.toFixed(4)},80&limit=50&include=images,location,player,urls&lang=en`,{headers:{"x-windy-api-key":key}});
     S.camsW=(j.webcams||[]).map(w=>({id:"w"+w.webcamId,title:w.title,lat:w.location&&w.location.latitude,lon:w.location&&w.location.longitude,city:w.location&&w.location.city,img:w.images&&w.images.current&&(w.images.current.preview||w.images.current.thumbnail),live:!!(w.player&&(w.player.live||w.player.day)),url:(w.urls&&w.urls.detail)||`https://www.windy.com/webcams/${w.webcamId}`,source:"webcam",online:true}));
+    S.camErr=false;
   }catch(e){ S.camsW=[]; S.camErr=true; }
   rebuildCams();
 }
+function inGeorgia(){ return S.state==="GA"||(S.lat>30.3&&S.lat<35.1&&S.lon>-85.7&&S.lon<-80.7); }
 async function loadGDOT(){
   const key=dotKey();
-  if(S.state!=="GA"||!key){ S.camsD=[]; return rebuildCams(); }
+  if(!inGeorgia()){ S.camsD=[]; S.gaEvents=null; S.dotErr=false; rebuildCams(); renderGADot(); return; }
+  const f=S.feedGA;
+  if(feedOK(f)&&((f.cameras||[]).length||(f.events||[]).length)){
+    S.camsD=(f.cameras||[]).filter(c=>c.lat!=null&&kmBetween(S.lat,S.lon,c.lat,c.lon)<=100)
+      .map(c=>({id:"g"+c.id,title:c.name,lat:c.lat,lon:c.lon,city:c.road,road:c.road,dir:c.dir,img:null,live:true,source:"GDOT",online:c.ok!==false,url:c.url}));
+    S.gaEvents=(f.events||[]).filter(e=>e.lat!=null).map(e=>({...e,km:kmBetween(S.lat,S.lon,e.lat,e.lon)})).filter(e=>e.km<=90).sort((a,b)=>a.km-b.km);
+    S.dotErr=false; S.dotSource="feed";
+    rebuildCams(); renderGADot(); return;
+  }
+  S.dotSource=key?"api":"";
+  if(!key){ S.camsD=[]; S.gaEvents=null; S.dotErr=false; rebuildCams(); renderGADot(); return; }
   try{
     const arr=await getJSON(`https://511ga.org/api/v2/get/cameras?key=${encodeURIComponent(key)}&format=json`,{},20000);
     S.camsD=(arr||[]).filter(c=>c.Latitude&&c.Longitude)
@@ -919,7 +948,7 @@ async function loadGDOT(){
     S.dotErr=false;
   }catch(e){ S.camsD=[]; S.dotErr=true; }
   try{
-    const ev=await getJSON(`https://511ga.org/api/v2/get/events?key=${encodeURIComponent(key)}&format=json`,{},20000);
+    const ev=await getJSON(`https://511ga.org/api/v2/get/event?key=${encodeURIComponent(key)}&format=json`,{},20000);
     S.gaEvents=(ev||[]).map(e=>({type:e.EventType||e.Type||e.Category||"Incident",desc:e.Description||e.Headline||e.Location||"",road:e.RoadwayName||e.Roadway||"",lat:e.Latitude,lon:e.Longitude}))
       .filter(e=>e.lat&&e.lon&&kmBetween(S.lat,S.lon,e.lat,e.lon)<=90)
       .map(e=>({...e,km:kmBetween(S.lat,S.lon,e.lat,e.lon)})).sort((a,b)=>a.km-b.km);
@@ -929,28 +958,30 @@ async function loadGDOT(){
 function saveDotInline(){ const v=(($("#dotKeyInline")||{}).value||"").trim(); if(!v) return; store.set("gaKey",v); const s=$("#dotKey"); if(s) s.value=v; toast("Georgia DOT key saved — checking Georgia 511…"); loadGDOT(); }
 function renderGADot(){
   const card=$("#gaDotCard"); if(!card) return;
-  if(S.state!=="GA"){ card.hidden=true; return; }
+  if(!inGeorgia()){ card.hidden=true; return; }
   card.hidden=false;
-  const hasKey=!!dotKey(), kb=$("#gaDotKeyBox"), inc=$("#gaIncidents"), meta=$("#gaDotMeta");
-  if(kb) kb.hidden=hasKey;
-  if(!hasKey){ if(inc) inc.innerHTML=""; if(meta) meta.textContent=""; return; }
-  if(S.dotErr){ if(meta) meta.textContent="blocked"; if(inc) inc.innerHTML=`<div class="empty">Couldn't reach Georgia 511 — their system blocks outside apps, so the in-app DOT feed won't load here. Your <b>Traffic</b> tab still shows live crashes, and the official DOT camera map is linked below.</div>`; return; }
+  const hasKey=!!dotKey(), feed=feedOK(S.feedGA), kb=$("#gaDotKeyBox"), inc=$("#gaIncidents"), meta=$("#gaDotMeta");
+  if(kb) kb.hidden=hasKey||feed;
+  if(!hasKey&&!feed){ if(inc) inc.innerHTML=`<div class="empty">Georgia DOT cameras and crash reports switch on automatically once the 511 developer key is approved — nothing to do on this phone.</div>`; if(meta) meta.textContent="waiting on 511 key"; return; }
+  if(S.dotErr&&!feed){ if(meta) meta.textContent="blocked"; if(inc) inc.innerHTML=`<div class="empty">Georgia 511 won't answer this phone directly. The feed will come through the hourly cache instead once the key is in place. Your <b>Traffic</b> tab still shows live crashes.</div>`; return; }
   const nD=S.camsD.length, ev=S.gaEvents||[];
-  if(meta) meta.textContent=`${nD} cams · ${ev.length} incidents nearby`;
+  if(meta) meta.textContent=`${nD} cams · ${ev.length} incidents nearby${S.dotSource==="feed"?" · "+ago(S.feedGA.updated):""}`;
   if(inc) inc.innerHTML=ev.length?ev.slice(0,12).map(e=>`<a class="row" href="https://511ga.org/" target="_blank" rel="noopener"><span class="ic">${ICON.bolt}</span><span class="t"><b>${esc(e.type)}${e.road?" · "+esc(e.road):""}</b><small>${esc((e.desc||"").slice(0,90))} · ${miles(e.km).toFixed(0)} mi</small></span><span class="go">↗</span></a>`).join(""):`<div class="empty">No active DOT incidents within ~55 miles right now.</div>`;
 }
 function rebuildCams(){
-  S.cams=[...S.camsW,...S.camsD].map(c=>({...c,km:c.lat!=null?kmBetween(S.lat,S.lon,c.lat,c.lon):null})).sort((a,b)=>(a.km??1e9)-(b.km??1e9));
-  $("#camCount").textContent=S.cams.length||(camKey()?"0":"add key");
+  const seen=new Set(), merged=[];
+  [...S.camsW,...S.camsC,...S.camsD].forEach(c=>{ if(!c||seen.has(c.id)) return; seen.add(c.id); merged.push(c); });
+  S.cams=merged.map(c=>({...c,km:c.lat!=null?kmBetween(S.lat,S.lon,c.lat,c.lon):null})).sort((a,b)=>(a.km??1e9)-(b.km??1e9));
+  $("#camCount").textContent=S.cams.length||(camsOn()?"0":"off");
   renderCamGrid(); drawCams(); renderNearby(); updateGlance(); if(mini) drawMiniCams();
 }
 function srcBadge(c){ return c.source==="GDOT"?'<span class="pill info" style="font-size:9px">DOT</span>':(c.live?'<span class="pill bad live">● Live</span>':'<span class="pill" style="font-size:9px">Snapshot</span>'); }
 function renderCamGrid(){
   const g=$("#camGrid"); if(!g) return;
-  const nW=S.camsW.length, nD=S.camsD.length;
-  $("#camMeta").textContent=S.cams.length?`${S.cams.length} within reach${nD?` · ${nD} GDOT`:""}`:"";
-  if(!camKey()&&!dotKey()){ g.innerHTML=""; return; }
-  if(!S.cams.length){ g.innerHTML=`<div class="empty">No cameras with a location nearby. ${S.state==="GA"?"Add a Georgia 511 key in Setup for highway cams, or the ":"The "}state DOT map below has more.</div>`; return; }
+  const nD=S.camsD.length, fresh=S.feeds.webcams?` · cached ${ago(S.feeds.webcams)}`:"";
+  $("#camMeta").textContent=S.cams.length?`${S.cams.length} within reach${nD?` · ${nD} GDOT`:""}${camKey()?"":fresh}`:"";
+  if(!camsOn()){ g.innerHTML=""; return; }
+  if(!S.cams.length){ g.innerHTML=`<div class="empty">No public cameras with a location within about 80 miles of here.${inGeorgia()&&!feedOK(S.feedGA)?" Georgia DOT highway cameras arrive once the 511 key is approved.":""} The state DOT map below has more.</div>`; return; }
   g.innerHTML=S.cams.map((c,i)=>`<a class="cam" data-cam="${i}" href="${esc(c.url)}" ${c.img?"":'target="_blank" rel="noopener"'}><div class="img" style="background-image:url('${esc(c.img||"")}')">${srcBadge(c)}</div><div class="cap"><b>${esc(c.title)}</b><small>${c.km!=null?miles(c.km).toFixed(1)+" mi "+compass(bearing(S.lat,S.lon,c.lat,c.lon)):""}${c.road?" · "+esc(c.road):""}</small></div></a>`).join("");
   $$("#camGrid .cam").forEach(a=>{ const c=S.cams[+a.dataset.cam]; if(c.img){ a.onclick=e=>{e.preventDefault();openViewer(located().indexOf(c));}; } });
 }
@@ -961,8 +992,8 @@ function renderNearby(){
   const list=located();
   $("#fabCam").hidden=!list.length;
   const el=$("#nearList");
-  if(!camKey()&&!dotKey()){ el.innerHTML=`<div class="empty" style="margin-bottom:8px">Paste your free Windy webcams key here to turn cameras on (it stays private on this phone):</div><div class="field"><input id="homeCamKey" placeholder="Paste Windy key here" autocomplete="off" autocapitalize="off" autocorrect="off"><button class="btn" id="homeCamSave">Save</button></div>`; const b=$("#homeCamSave"); if(b) b.onclick=()=>saveKey($("#homeCamKey").value); const inp=$("#homeCamKey"); if(inp) inp.onkeydown=e=>{ if(e.key==="Enter") saveKey(inp.value); }; $("#nearMeta").textContent=""; return; }
-  if(!list.length){ el.innerHTML=`<div class="empty">No public cameras with a location within 50 miles. Your state DOT map (Cams tab) has more.</div>`; $("#nearMeta").textContent=""; return; }
+  if(!camsOn()){ el.innerHTML=`<div class="empty" style="margin-bottom:8px"><b>Cameras are off.</b> They need one free key, about 2 minutes: <a href="https://api.windy.com/keys" target="_blank" rel="noopener">get a Windy webcams key</a> (choose "Webcams API"), then paste it here. It stays on this phone.</div><div class="field"><input id="homeCamKey" placeholder="Paste Windy key here" autocomplete="off" autocapitalize="off" autocorrect="off"><button class="btn" id="homeCamSave">Save</button></div>`; const b=$("#homeCamSave"); if(b) b.onclick=()=>saveKey($("#homeCamKey").value); const inp=$("#homeCamKey"); if(inp) inp.onkeydown=e=>{ if(e.key==="Enter") saveKey(inp.value); }; $("#nearMeta").textContent=""; return; }
+  if(!list.length){ el.innerHTML=`<div class="empty">No public cameras within 50 miles of here${S.camErr?" (Windy didn't answer — check the key in Setup)":""}. Your state DOT map (Cams tab) has more.</div>`; $("#nearMeta").textContent=""; return; }
   $("#nearMeta").textContent=`${list.length} located · closest first`;
   el.innerHTML=list.slice(0,8).map((c,i)=>{
     const br=compass(bearing(S.lat,S.lon,c.lat,c.lon));
@@ -1142,7 +1173,7 @@ $("#btnDrive").onclick=openDrive; $("#driveExit").onclick=closeDrive;
 async function refreshAll(){
   if(S.lat==null) return;
   const b=$("#btnRefresh svg"); b.classList.add("spin");
-  await Promise.allSettled([loadWeather(),loadAlerts(),loadNWS(),loadCams(),loadGDOT(),loadAircraft(),loadQuakes(),loadOutlook(),loadRiver()]);
+  await Promise.allSettled([loadWeather(),loadAlerts(),loadNWS(),loadFeeds().then(()=>Promise.allSettled([loadCams(),loadGDOT()])),loadAircraft(),loadQuakes(),loadOutlook(),loadRiver()]);
   lastRefresh=Date.now(); updateGlance(); updateMini();
   if(radar) radar.setUrl("https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/nexrad-n0q-900913/{z}/{x}/{y}.png?t="+Date.now());
   if(!$("[data-view=news]").hidden) loadNews();
