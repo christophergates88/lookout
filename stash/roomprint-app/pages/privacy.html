@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Privacy — {{BUSINESS_NAME}}</title>
+<meta name="theme-color" content="#16263A">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+:root{--navy:#16263A;--vellum:#F3EEE2;--bg:#F6F4EF;--ink:#16263A;--muted:#5D6A79;--line:#DDD8CE;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--navy:#0A111B;--bg:#0F1824;--ink:#E8ECF1;--muted:#9AA7B6;--line:#2A384B;color-scheme:dark}}
+:root[data-theme="dark"]{--navy:#0A111B;--bg:#0F1824;--ink:#E8ECF1;--muted:#9AA7B6;--line:#2A384B;color-scheme:dark}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Atkinson Hyperlegible",system-ui,sans-serif;font-size:17px;line-height:1.6}
+.bar{background:var(--navy);color:var(--vellum);padding:12px max(16px,env(safe-area-inset-left,0px))}
+.bar a{color:inherit;text-decoration:none;font:800 1.15rem "Archivo",system-ui,sans-serif;display:flex;align-items:center;gap:10px;max-width:640px;margin:0 auto}
+.bar svg{width:32px;height:32px}
+main{max-width:640px;margin:0 auto;padding:24px max(16px,env(safe-area-inset-left,0px)) 60px}
+h1{font:800 1.8rem/1.15 "Archivo",system-ui,sans-serif;margin:0 0 12px}
+h2{font:800 1.15rem "Archivo",system-ui,sans-serif;margin:24px 0 6px}
+p{margin:0 0 10px}.muted{color:var(--muted)}
+a{color:inherit}
+</style>
+</head>
+<body>
+<header class="bar"><a href="/"><svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#16263A"/><path d="M12 29 L32 13 L52 29 V51 H12 Z" fill="none" stroke="#F3EEE2" stroke-width="4.5" stroke-linejoin="round"/><circle cx="32" cy="37.5" r="3.6" fill="#E5533D"/></svg>{{BUSINESS_NAME}}</a></header>
+<main>
+  <h1>Privacy</h1>
+  <p class="muted">Plain language, because it's your home.</p>
+  <h2>What we collect</h2>
+  <p>Your name, email, phone (if you give it), town, and the video frames, photos and notes you upload about your home. Nothing else. No tracking pixels, no advertising, no selling or sharing of your information.</p>
+  <h2>What it's used for</h2>
+  <p>Only to build your home contents record and to send it to you. People and software working for {{BUSINESS_NAME}} look at your images for that purpose and no other.</p>
+  <h2>Where it lives</h2>
+  <p>Your uploads are stored in a private, access-controlled repository that only {{BUSINESS_NAME}} can open. Your private walkthrough link is the key to your walkthrough; anyone you share it with can see what you uploaded, so keep it to yourself.</p>
+  <h2>How long we keep it</h2>
+  <p>Raw video frames and photos are deleted 30 days after your record is delivered. We keep your finished record so you can download it again and so a yearly update can be built from it. Ask us any time and we delete everything we hold about you.</p>
+  <h2>Payment</h2>
+  <p>Payments are handled by PayPal. We never see your card or bank details.</p>
+  <h2>The record itself</h2>
+  <p>Your record is a PDF locked with a password we give only to you, plus a spreadsheet. Values in it are estimates of replacement cost, not appraisals, and nothing in it is insurance advice.</p>
+  <h2>Questions</h2>
+  <p>{{BUSINESS_EMAIL}}</p>
+</main>
+</body>
+</html>

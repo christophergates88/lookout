@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Start your record — {{BUSINESS_NAME}}</title>
+<meta name="theme-color" content="#16263A">
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112,700;112,800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+:root{--navy:#16263A;--vellum:#F3EEE2;--vellum-2:#C9D2DD;--bg:#F6F4EF;--surface:#FFFFFF;--ink:#16263A;--muted:#5D6A79;--line:#DDD8CE;--rec:#D9472F;--rec-ink:#B53A25;--ok:#2F7D5B;--focus:#3B82C4;
+  --display:"Archivo",system-ui,sans-serif;--body:"Atkinson Hyperlegible",system-ui,sans-serif;--mono:"JetBrains Mono",ui-monospace,monospace;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--navy:#0A111B;--bg:#0F1824;--surface:#162231;--ink:#E8ECF1;--muted:#9AA7B6;--line:#2A384B;--rec:#F0715A;--rec-ink:#F0846F;--ok:#5FC08F;--focus:#7DB6EA;color-scheme:dark}}
+:root[data-theme="dark"]{--navy:#0A111B;--bg:#0F1824;--surface:#162231;--ink:#E8ECF1;--muted:#9AA7B6;--line:#2A384B;--rec:#F0715A;--rec-ink:#F0846F;--ok:#5FC08F;--focus:#7DB6EA;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.5}
+.bar{background:var(--navy);color:var(--vellum);padding:12px max(16px,env(safe-area-inset-left,0px))}
+.bar .in{max-width:640px;margin:0 auto;display:flex;align-items:center;gap:10px}
+.bar svg{width:32px;height:32px}
+.bar a{color:inherit;text-decoration:none;font:800 1.15rem var(--display);display:flex;align-items:center;gap:10px}
+main{max-width:640px;margin:0 auto;padding:22px max(16px,env(safe-area-inset-left,0px)) 60px;display:grid;gap:18px}
+h1{font:800 1.7rem/1.15 var(--display);margin:0}
+h2{font:700 1.15rem var(--display);margin:0}
+p{margin:0}.muted{color:var(--muted)}.small{font-size:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:14px}
+label.f{display:grid;gap:6px;font-weight:700;font-size:15px}
+input{font:16px var(--body);padding:12px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--ink);width:100%}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:480px){.row2{grid-template-columns:1fr}}
+.choice{display:grid;gap:8px}
+.choice label{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;border:2px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer}
+.choice label:has(input:checked){border-color:var(--ink);background:var(--bg)}
+.choice input{width:20px;height:20px;margin:0}
+.choice b{display:block}.choice span{display:block;color:var(--muted);font-size:14px}
+.choice .pr{font:800 1.2rem var(--display);font-variant-numeric:tabular-nums}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:50px;padding:12px 20px;border-radius:10px;border:2px solid var(--ink);background:transparent;color:var(--ink);font:700 16px var(--body);cursor:pointer;text-decoration:none}
+.btn.rec{background:var(--rec);border-color:var(--rec);color:#fff}
+.btn.big{width:100%;min-height:56px;font-size:18px}
+.btn:disabled{opacity:.5}
+.err{color:var(--rec-ink);font-weight:700}
+.link{font:500 14px var(--mono);background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:10px;overflow-wrap:anywhere;user-select:all}
+.tip{border-left:4px solid var(--rec);padding-left:12px;color:var(--muted)}
+ol.tips{margin:0;padding-left:1.2em;display:grid;gap:6px}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header class="bar"><div class="in"><a href="/"><svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#16263A"/><path d="M12 29 L32 13 L52 29 V51 H12 Z" fill="none" stroke="#F3EEE2" stroke-width="4.5" stroke-linejoin="round"/><path d="M21 34 v-3 h3 M43 34 v-3 h-3 M21 41 v3 h3 M43 41 v3 h-3" fill="none" stroke="#F3EEE2" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="32" cy="37.5" r="3.6" fill="#E5533D"/></svg>{{BUSINESS_NAME}}</a></div></header>
+<main>
+  <section class="card" id="badLink" hidden>
+    <h2>That link isn't right</h2>
+    <p class="muted">Check the link in your email, or start a new record below. Links are long on purpose; copy the whole thing.</p>
+  </section>
+
+  <section id="formCard" class="card">
+    <div>
+      <h1>Start your record</h1>
+      <p class="muted" style="margin-top:6px">Takes a minute. Then your phone does the rest.</p>
+    </div>
+    <form id="f" novalidate>
+      <div style="display:grid;gap:14px">
+        <div class="row2">
+          <label class="f" for="name">Your name<input id="name" autocomplete="name" required></label>
+          <label class="f" for="phone">Phone <span class="muted" style="font-weight:400">(optional)</span><input id="phone" type="tel" autocomplete="tel" inputmode="tel"></label>
+        </div>
+        <label class="f" for="email">Email<input id="email" type="email" autocomplete="email" inputmode="email" required><span class="muted small" style="font-weight:400">Your record and your private link go here.</span></label>
+        <div class="row2">
+          <label class="f" for="town">Town<input id="town" autocomplete="address-level2"></label>
+          <label class="f" for="homeName">Call this home<input id="homeName" placeholder="The Smith home"></label>
+        </div>
+        <div class="choice" role="radiogroup" aria-label="Which record">
+          <label><input type="radio" name="plan" value="home" checked><span><b>Home Record</b><span>Homes up to about 2,000 sq ft. Every room, closet and the garage.</span></span><span class="pr">${{PRICE_HOME}}</span></label>
+          <label><input type="radio" name="plan" value="full"><span><b>Full Property Record</b><span>Larger homes and lake houses. Outbuildings, dock, boat gear, extra close-ups.</span></span><span class="pr">${{PRICE_FULL}}</span></label>
+          <label><input type="radio" name="plan" value="apartment"><span><b>Apartment or condo</b><span>A shorter room list. Same full record.</span></span><span class="pr">${{PRICE_HOME}}</span></label>
+        </div>
+        <p class="muted small">You pay after you see your item count and total. Nothing is charged now.</p>
+        <p class="err" id="err" hidden></p>
+        <button class="btn rec big" type="submit" id="go">Get my walkthrough link</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="card" id="done" hidden>
+    <h1>Your walkthrough is ready</h1>
+    <p>This is your private link. Anyone with it can see your walkthrough, so keep it to yourself. We'll also email it to <b id="doneEmail"></b> within the hour.</p>
+    <div class="link" id="link"></div>
+    <a class="btn rec big" id="open" href="#">Open my walkthrough</a>
+    <button class="btn" type="button" id="copy">Copy link</button>
+    <div class="tip"><b>Before you start</b><ol class="tips"><li>Turn on every light.</li><li>Hold your phone sideways.</li><li>Walk slowly and open closets, drawers and cabinets.</li><li>Pause a couple of seconds on anything with a label.</li></ol></div>
+  </section>
+</main>
+<script>
+(function(){
+  if ("{{BAD_LINK}}" === "1") { document.getElementById("badLink").hidden = false; }
+  const q = new URLSearchParams(location.search);
+  const pre = q.get("plan");
+  if (pre) { const r = document.querySelector('input[name=plan][value="' + pre.replace(/[^a-z]/g, "") + '"]'); if (r) r.checked = true; }
+  const f = document.getElementById("f"), err = document.getElementById("err"), go = document.getElementById("go");
+  f.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    err.hidden = true;
+    const v = (id) => document.getElementById(id).value.trim();
+    const body = { name: v("name"), email: v("email"), phone: v("phone"), town: v("town"), homeName: v("homeName"), plan: (document.querySelector("input[name=plan]:checked") || {}).value };
+    if (!body.name) { err.textContent = "Please add your name."; err.hidden = false; return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) { err.textContent = "Please add a working email address."; err.hidden = false; return; }
+    go.disabled = true; go.textContent = "One moment…";
+    try {
+      const r = await fetch("/api/start", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.message || "Something went wrong.");
+      document.getElementById("formCard").hidden = true;
+      const d = document.getElementById("done"); d.hidden = false;
+      document.getElementById("doneEmail").textContent = body.email;
+      document.getElementById("link").textContent = j.url;
+      document.getElementById("open").href = j.url;
+      try { localStorage.setItem("roomprint.lastLink", j.url); } catch (x) {}
+      window.scrollTo(0, 0);
+    } catch (x) {
+      err.textContent = x.message || "Something went wrong. Please try again."; err.hidden = false;
+      go.disabled = false; go.textContent = "Get my walkthrough link";
+    }
+  });
+  document.getElementById("copy").addEventListener("click", async () => {
+    const t = document.getElementById("link").textContent, b = document.getElementById("copy");
+    try { await navigator.clipboard.writeText(t); b.textContent = "Copied"; } catch (x) { const r = document.createRange(); r.selectNodeContents(document.getElementById("link")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = "Selected — copy it now"; }
+  });
+})();
+</script>
+</body>
+</html>

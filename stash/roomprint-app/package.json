@@ -1,0 +1,14 @@
+{
+  "name": "roomprint-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Roomprint: self-recorded home contents records. Cloudflare Worker + customer walkthrough app.",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "node test/run.js"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}

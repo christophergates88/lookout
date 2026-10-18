@@ -1,0 +1,20 @@
+{
+  "name": "roomprint-ios",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Roomprint iOS shell (Capacitor). The app loads the live Roomprint walkthrough from the server.",
+  "scripts": {
+    "ios:add": "npx cap add ios --packagemanager SPM",
+    "ios:sync": "npx cap sync ios",
+    "ios:open": "npx cap open ios"
+  },
+  "dependencies": {
+    "@capacitor/core": "^7.0.0",
+    "@capacitor/ios": "^7.0.0",
+    "@capacitor/splash-screen": "^7.0.0",
+    "@capacitor/status-bar": "^7.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.0.0"
+  }
+}

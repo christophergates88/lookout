@@ -1,0 +1,41 @@
+name = "roomprint"
+main = "src/index.js"
+compatibility_date = "2026-06-01"
+workers_dev = true
+
+# Job state (customer, rooms, upload counts). Created with the Cloudflare connector.
+[[kv_namespaces]]
+binding = "JOBS"
+id = "780af116850a47af8a462d1962b77608"
+
+[vars]
+# Where customer files are stored (a private GitHub repository).
+GH_OWNER = "christophergates88"
+GH_REPO = "roomprint-uploads"
+GH_BRANCH_BASE = "main"
+# Business details shown on the site and in emails.
+BUSINESS_NAME = "Roomprint"
+BUSINESS_EMAIL = ""
+# Payment. Preferred: the email address on the PayPal account that should receive payments
+# (makes a PayPal checkout link that carries the job number). Fallback: a PayPal.me handle.
+PAYPAL_EMAIL = ""
+PAYPAL_ME = ""
+# Prices in whole dollars.
+PRICE_HOME = "199"
+PRICE_FULL = "299"
+PRICE_UPDATE = "59"
+# Set to "1" to run without GitHub (local testing only).
+MOCK_GITHUB = "0"
+
+# Secrets (set in the Cloudflare dashboard → Worker → Settings → Variables and Secrets):
+#   GH_TOKEN  — a GitHub fine-grained token with Contents: read and write on GH_REPO only.
+
+[[rules]]
+type = "Text"
+globs = ["**/*.html", "**/*.txt", "**/*.svg"]
+fallthrough = true
+
+[[rules]]
+type = "Data"
+globs = ["**/*.png"]
+fallthrough = true

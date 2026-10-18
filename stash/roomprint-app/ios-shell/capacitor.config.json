@@ -1,0 +1,18 @@
+{
+  "appId": "com.roomprint.app",
+  "appName": "Roomprint",
+  "webDir": "www",
+  "server": {
+    "url": "https://REPLACE-WITH-WORKER-URL",
+    "cleartext": false
+  },
+  "ios": {
+    "contentInset": "always",
+    "backgroundColor": "#16263A",
+    "limitsNavigationsToAppBoundDomains": false
+  },
+  "plugins": {
+    "SplashScreen": { "launchShowDuration": 800, "backgroundColor": "#16263A", "showSpinner": false },
+    "StatusBar": { "style": "DARK", "backgroundColor": "#16263A" }
+  }
+}

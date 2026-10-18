@@ -1,0 +1,533 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Your walkthrough — {{BUSINESS_NAME}}</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#16263A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Roomprint">
+<link rel="apple-touch-icon" href="/icon-180.png">
+<link rel="icon" href="/icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112,700;112,800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+:root{--navy:#16263A;--vellum:#F3EEE2;--vellum-2:#C9D2DD;--bg:#F3F1EC;--surface:#FFFFFF;--ink:#16263A;--muted:#5D6A79;--line:#DCD8CF;--rec:#D9472F;--rec-ink:#B53A25;--ok:#2F7D5B;--warn:#B7791F;--focus:#3B82C4;
+  --display:"Archivo",system-ui,sans-serif;--body:"Atkinson Hyperlegible",system-ui,sans-serif;--mono:"JetBrains Mono",ui-monospace,monospace;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--navy:#0A111B;--bg:#0F1824;--surface:#172334;--ink:#E8ECF1;--muted:#9AA7B6;--line:#2A384B;--rec:#F0715A;--rec-ink:#F0846F;--ok:#5FC08F;--warn:#E3A84A;--focus:#7DB6EA;color-scheme:dark}}
+:root[data-theme="dark"]{--navy:#0A111B;--bg:#0F1824;--surface:#172334;--ink:#E8ECF1;--muted:#9AA7B6;--line:#2A384B;--rec:#F0715A;--rec-ink:#F0846F;--ok:#5FC08F;--warn:#E3A84A;--focus:#7DB6EA;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.45;-webkit-text-size-adjust:100%}
+button,input,textarea{font:inherit}
+.bar{position:sticky;top:0;z-index:5;background:var(--navy);color:var(--vellum);padding:10px max(14px,env(safe-area-inset-right,0px)) 10px max(14px,env(safe-area-inset-left,0px));padding-top:calc(10px + env(safe-area-inset-top,0px))}
+.bar .in{max-width:640px;margin:0 auto;display:flex;align-items:center;gap:10px}
+.bar .mark{width:30px;height:30px;flex:none}
+.bar .t{display:grid;min-width:0;flex:1}
+.bar .t b{font:800 1.05rem/1.1 var(--display);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar .t span{font:500 11px var(--mono);color:#B9C3CF;letter-spacing:.04em}
+.ring{width:44px;height:44px;flex:none;position:relative}
+.ring svg{width:44px;height:44px;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:4}
+.ring .bg{stroke:rgba(255,255,255,.18)}
+.ring .fg{stroke:#F0715A;stroke-linecap:round;transition:stroke-dashoffset .4s}
+.ring b{position:absolute;inset:0;display:grid;place-items:center;font:700 12px var(--mono);color:#F3EEE2}
+main{max-width:640px;margin:0 auto;padding:16px max(14px,env(safe-area-inset-right,0px)) calc(110px + env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px));display:grid;gap:14px;align-content:start}
+h1{font:800 1.5rem/1.15 var(--display);margin:0;text-wrap:balance}
+h2{font:700 1.15rem/1.2 var(--display);margin:0}
+p{margin:0}.muted{color:var(--muted)}.small{font-size:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:12px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:10px 16px;border-radius:12px;border:2px solid var(--ink);background:transparent;color:var(--ink);font-weight:700;cursor:pointer;text-decoration:none;text-align:center}
+.btn.solid{background:var(--ink);color:var(--bg)}
+.btn.rec{background:var(--rec);border-color:var(--rec);color:#fff}
+.btn.big{width:100%;min-height:60px;font-size:18px}
+.btn.small{min-height:38px;padding:6px 12px;font-size:15px}
+.btn.ghost{border-color:var(--line);color:var(--ink)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn svg{width:22px;height:22px;flex:none}
+label.btn{position:relative;overflow:hidden}
+label.btn input[type=file]{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.grow{flex:1 1 auto}
+.tips{margin:0;padding-left:1.2em;display:grid;gap:8px}
+.tips li::marker{color:var(--rec)}
+.rooms{display:grid;gap:10px}
+.room{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;cursor:pointer;color:var(--ink);min-height:64px}
+.room .st{width:30px;height:30px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;flex:none;font:700 12px var(--mono);color:var(--muted)}
+.room .st.has{border-color:var(--rec);color:var(--rec-ink)}
+.room .st.done{border-color:var(--ok);background:var(--ok);color:#fff}
+.room .t{display:grid;gap:1px;min-width:0;flex:1}
+.room .t b{font-size:1.05rem;overflow-wrap:anywhere}
+.room .t span{font-size:13px;color:var(--muted)}
+.room .chev{color:var(--muted);flex:none}
+.room.special{border-style:dashed}
+.sectionlabel{font:500 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:6px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px dashed var(--muted);background:transparent;color:var(--ink);border-radius:99px;padding:8px 13px;font-size:15px;cursor:pointer;min-height:38px}
+.foot{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--surface);border-top:1px solid var(--line);padding:10px max(14px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px))}
+.foot .in{max-width:640px;margin:0 auto;display:flex;gap:10px;align-items:center}
+.foot .in .txt{flex:1;min-width:0;font-size:14px;color:var(--muted)}
+.back{border:0;background:transparent;color:var(--muted);font-size:15px;padding:4px 0;cursor:pointer;justify-self:start;display:inline-flex;align-items:center;gap:6px}
+.hint{border-left:4px solid var(--rec);padding:4px 0 4px 12px;color:var(--muted);font-size:15px}
+.prog{display:grid;gap:6px}
+.prog .track{height:10px;border-radius:99px;background:var(--bg);border:1px solid var(--line);overflow:hidden}
+.prog .fill{height:100%;background:var(--rec);width:0;transition:width .25s}
+.prog .lbl{font:500 13px var(--mono);color:var(--muted)}
+.err{color:var(--rec-ink);font-weight:700;font-size:15px}
+.ok{color:var(--ok);font-weight:700;font-size:15px}
+.thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:6px}
+.th{position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--bg);border:1px solid var(--line)}
+.th img{width:100%;height:100%;object-fit:cover;display:block}
+.th .tag{position:absolute;left:4px;bottom:4px;font:500 10px var(--mono);background:rgba(10,17,27,.75);color:#fff;padding:2px 5px;border-radius:4px}
+.th .x{position:absolute;right:3px;top:3px;width:26px;height:26px;border-radius:99px;border:0;background:rgba(10,17,27,.75);color:#fff;font-size:15px;line-height:26px;cursor:pointer;padding:0}
+.th.ph{display:grid;place-items:center;color:var(--muted);font:500 11px var(--mono)}
+textarea{width:100%;min-height:84px;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font-size:16px;resize:vertical}
+label.f{display:grid;gap:6px;font-weight:700;font-size:15px}
+.saved{font:500 12px var(--mono);color:var(--ok);min-height:14px}
+.timeline{display:grid;gap:0;margin:0;padding:0;list-style:none}
+.timeline li{display:grid;grid-template-columns:28px 1fr;gap:10px;padding:8px 0;align-items:start}
+.timeline .dot{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-size:12px;color:#fff;margin-top:2px}
+.timeline .dot.done{background:var(--ok);border-color:var(--ok)}
+.timeline .dot.now{border-color:var(--rec);background:var(--rec)}
+.timeline b{display:block}.timeline span{display:block;color:var(--muted);font-size:14px}
+.bignum{font:800 2rem/1 var(--display);font-variant-numeric:tabular-nums}
+.stat{display:grid;gap:2px}.stat .k{font:500 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.pw{font:700 1.3rem var(--mono);letter-spacing:.12em;background:var(--bg);border:1px dashed var(--muted);border-radius:10px;padding:10px 14px;text-align:center;user-select:all}
+.nudge{display:flex;gap:10px;align-items:flex-start;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px;font-size:14px}
+.nudge button{margin-left:auto}
+.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:700;font-size:15px;box-shadow:0 6px 20px rgba(0,0,0,.25);z-index:20;max-width:calc(100% - 32px)}
+button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible,label.btn:focus-within{outline:3px solid var(--focus);outline-offset:2px}
+[hidden]{display:none!important}
+@media (prefers-reduced-motion:reduce){.prog .fill,.ring .fg{transition:none}}
+</style>
+</head>
+<body>
+<header class="bar"><div class="in">
+  <svg class="mark" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#16263A"/><path d="M12 29 L32 13 L52 29 V51 H12 Z" fill="none" stroke="#F3EEE2" stroke-width="4.5" stroke-linejoin="round"/><path d="M21 34 v-3 h3 M43 34 v-3 h-3 M21 41 v3 h3 M43 41 v3 h-3" fill="none" stroke="#F3EEE2" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="32" cy="37.5" r="3.6" fill="#E5533D"/></svg>
+  <div class="t"><b id="hdrTitle">{{BUSINESS_NAME}}</b><span id="hdrSub">Your walkthrough</span></div>
+  <div class="ring" aria-label="Progress"><svg viewBox="0 0 44 44"><circle class="bg" cx="22" cy="22" r="18"/><circle class="fg" id="ringFg" cx="22" cy="22" r="18" stroke-dasharray="113" stroke-dashoffset="113"/></svg><b id="ringTxt">0%</b></div>
+</div></header>
+
+<main id="app"><div class="card"><p class="muted">Loading your walkthrough…</p></div></main>
+<div class="foot" id="foot" hidden><div class="in"><div class="txt" id="footTxt"></div><button class="btn rec" type="button" id="footBtn">Send to Roomprint</button></div></div>
+
+<script>
+(function(){
+'use strict';
+const ID = "{{JOB_ID}}", KEY = "{{JOB_KEY}}";
+const api = (sub, opts) => fetch("/api/job/" + ID + (sub ? "/" + sub : "") + (sub && sub.includes("?") ? "&" : "?") + "k=" + encodeURIComponent(KEY), Object.assign({ cache: "no-store" }, opts || {}));
+const app = document.getElementById("app"), foot = document.getElementById("foot");
+const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const money = (n) => "$" + Math.round(Number(n) || 0).toLocaleString("en-US");
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const IS_IOS = /iP(hone|ad|od)/.test(navigator.userAgent) && !window.MSStream;
+const STANDALONE = window.navigator.standalone === true || matchMedia("(display-mode: standalone)").matches;
+
+let data = null;          // { job, record, payUrl, ... }
+let view = "rooms";       // intro | rooms | room | sent
+let currentSlug = null;
+const session = {};       // slug -> [{file, url, kind, t}] thumbnails from this session
+const progress = {};      // slug -> {label, done, total, error, ok}
+const busy = new Set();
+let pollTimer = null;
+
+/* ---------- boot ---------- */
+load().then(() => {
+  let seen = false; try { seen = localStorage.getItem("rp.intro." + ID) === "1"; } catch (e) {}
+  if (data.job.status === "ready") view = "sent";
+  else if (!seen && totalImages() === 0) view = "intro";
+  render();
+}).catch((e) => { app.innerHTML = '<div class="card"><p class="err">Couldn\'t load your walkthrough.</p><p class="muted small">' + esc(e.message || e) + '</p><button class="btn" type="button" onclick="location.reload()">Try again</button></div>'; });
+
+async function load() {
+  const r = await api("");
+  if (!r.ok) throw new Error("This link doesn't work. Check the one in your email.");
+  data = await r.json();
+  return data;
+}
+
+window.addEventListener("beforeunload", (e) => { if (busy.size) { e.preventDefault(); e.returnValue = ""; } });
+document.addEventListener("visibilitychange", () => { if (!document.hidden && view === "sent") refreshSent(); });
+
+/* ---------- helpers ---------- */
+function rooms() { return data.job.rooms; }
+function room(slug) { return rooms().find((r) => r.slug === slug); }
+function totalImages() { return rooms().reduce((n, r) => n + r.media.length, 0); }
+function roomsThatCount() { return rooms().filter((r) => r.kind !== "receipts"); }
+function doneCount() { return roomsThatCount().filter((r) => r.done || r.media.length > 0).length; }
+function firstName() { return (data.job.name || "").trim().split(/\s+/)[0] || ""; }
+function updateRing() {
+  const total = roomsThatCount().length || 1, done = doneCount();
+  const pct = data.job.status === "ready" ? 100 : Math.round(done / total * 100);
+  document.getElementById("ringFg").style.strokeDashoffset = String(113 - 113 * pct / 100);
+  document.getElementById("ringTxt").textContent = pct + "%";
+  document.getElementById("hdrTitle").textContent = data.job.homeName || "Your home";
+  document.getElementById("hdrSub").textContent = data.job.status === "ready" ? "Sent · " + totalImages() + " images" : (totalImages() + " images · " + done + " of " + total + " rooms");
+}
+function toast(msg) { let t = document.querySelector(".toast"); if (!t) { t = document.createElement("div"); t.className = "toast"; document.body.appendChild(t); } t.textContent = msg; clearTimeout(t._h); t._h = setTimeout(() => t.remove(), 2600); }
+
+/* ---------- render ---------- */
+function render() {
+  updateRing();
+  foot.hidden = true;
+  if (view === "intro") return renderIntro();
+  if (view === "room") return renderRoom();
+  if (view === "sent") return renderSent();
+  return renderRooms();
+}
+
+function renderIntro() {
+  app.innerHTML =
+    '<section class="card">' +
+      '<h1>Hi' + (firstName() ? " " + esc(firstName()) : "") + '. This takes about 20 minutes.</h1>' +
+      '<p>For each room you\'ll tap <b>Record</b>, walk the room slowly with your camera, and stop. Then you\'ll snap the labels on your big-ticket items. Then tap <b>Send</b>. That\'s the whole job.</p>' +
+      '<ol class="tips">' +
+        '<li><b>Lights on.</b> Open the blinds too.</li>' +
+        '<li><b>Phone sideways.</b> Walk slowly along each wall.</li>' +
+        '<li><b>Open everything.</b> Closets, drawers, cabinets, the pantry. Pause two seconds inside each.</li>' +
+        '<li><b>Pause on labels.</b> TVs, appliances, tools, anything with a brand name.</li>' +
+        '<li><b>Stop and come back any time.</b> This link remembers everything you\'ve uploaded.</li>' +
+      '</ol>' +
+      '<p class="muted small">Put away anything private first (bank papers, ID cards, safe combinations). Record your home as it is; no need to tidy.</p>' +
+      '<button class="btn rec big" type="button" id="introGo">Let\'s go</button>' +
+    '</section>';
+  document.getElementById("introGo").addEventListener("click", () => { try { localStorage.setItem("rp.intro." + ID, "1"); } catch (e) {} view = "rooms"; render(); window.scrollTo(0, 0); });
+}
+
+function renderRooms() {
+  const j = data.job;
+  const regular = rooms().filter((r) => r.kind === "room"), special = rooms().filter((r) => r.kind !== "room");
+  let h = '<section class="card" style="gap:6px"><h1>Your rooms</h1><p class="muted small">Tap a room, record it, come back here. Add any room we missed.</p></section>';
+  h += '<div class="rooms">' + regular.map(roomCard).join("") + '</div>';
+  h += '<div class="sectionlabel">Then, for a stronger record</div>';
+  h += '<div class="rooms">' + special.map(roomCard).join("") + '</div>';
+  h += '<section class="card"><h2>Add a room</h2><div class="chips">' + ["Bedroom", "Bathroom", "Basement", "Attic", "Playroom", "Sunroom", "Workshop", "Pantry", "Hallway", "Porch", "Pool and yard", "Barn"].map((n) => '<button class="chip" type="button" data-add="' + esc(n) + '">+ ' + esc(n) + '</button>').join("") + '</div>' +
+       '<form class="row" id="customRoom" autocomplete="off"><input type="text" id="crName" placeholder="Or type a room name" aria-label="Room name" style="flex:1;min-width:0;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font-size:16px"><button class="btn small" type="submit">Add</button></form></section>';
+  h += '<section class="card"><h2>A few quick tips</h2><ol class="tips small"><li>Lights on, phone sideways, walk slowly.</li><li>Open closets, drawers and cabinets. Pause two seconds inside each.</li><li>Pause on labels and brand names.</li></ol></section>';
+  app.innerHTML = h;
+  app.querySelectorAll("[data-open]").forEach((b) => b.addEventListener("click", () => openRoom(b.dataset.open)));
+  app.querySelectorAll("[data-add]").forEach((b) => b.addEventListener("click", () => addRoom(b.dataset.add)));
+  document.getElementById("customRoom").addEventListener("submit", (e) => { e.preventDefault(); const v = document.getElementById("crName").value.trim(); if (v) addRoom(v); });
+  const n = totalImages();
+  foot.hidden = false;
+  document.getElementById("footTxt").innerHTML = n ? '<b>' + n + ' images</b> in ' + doneCount() + ' of ' + roomsThatCount().length + ' rooms' : 'Record at least one room to send.';
+  const fb = document.getElementById("footBtn"); fb.disabled = !n || busy.size > 0; fb.textContent = "Send to Roomprint"; fb.onclick = confirmSend;
+}
+
+function roomCard(r) {
+  const n = r.media.length, done = r.done || (r.kind === "room" && n > 0 && r.done !== false && false);
+  const stCls = r.done ? "st done" : n ? "st has" : "st";
+  const stTxt = r.done ? "✓" : n ? String(n) : "";
+  const sub = r.done ? n + " images · done" : n ? n + " images saved" : (r.kind === "receipts" ? "Optional" : r.kind === "labels" ? "Photos of labels" : "Not started");
+  return '<button class="room' + (r.kind !== "room" ? " special" : "") + '" type="button" data-open="' + esc(r.slug) + '"><span class="' + stCls + '">' + stTxt + '</span><span class="t"><b>' + esc(r.name) + '</b><span>' + esc(sub) + '</span></span><span class="chev">›</span></button>';
+}
+
+function openRoom(slug) { currentSlug = slug; view = "room"; render(); window.scrollTo(0, 0); }
+
+function renderRoom() {
+  const r = room(currentSlug);
+  if (!r) { view = "rooms"; return render(); }
+  const special = r.kind !== "room";
+  const p = progress[r.slug];
+  const thumbs = session[r.slug] || [];
+  const others = Math.max(0, r.media.length - thumbs.length);
+  let h = '<button class="back" type="button" id="back">‹ All rooms</button>';
+  h += '<section class="card">';
+  h += '<h1>' + esc(r.name) + '</h1>';
+  if (r.hint) h += '<p class="hint">' + esc(r.hint) + '</p>';
+  else h += '<p class="muted small">Walk slowly along every wall. Open closets, drawers and cabinets. Pause two seconds on labels.</p>';
+  if (special) {
+    h += '<label class="btn rec big">' + camIcon() + ' Take photos<input type="file" accept="image/*" capture="environment" multiple data-photos="' + esc(r.slug) + '"' + (busy.has(r.slug) ? " disabled" : "") + '></label>';
+    h += '<label class="btn ghost">Choose photos from my library<input type="file" accept="image/*" multiple data-photos="' + esc(r.slug) + '"' + (busy.has(r.slug) ? " disabled" : "") + '></label>';
+  } else {
+    h += '<label class="btn rec big">' + vidIcon() + ' Record this room<input type="file" accept="video/*" capture="environment" data-video="' + esc(r.slug) + '"' + (busy.has(r.slug) ? " disabled" : "") + '></label>';
+    h += '<div class="row"><label class="btn ghost small grow">Add photos<input type="file" accept="image/*" multiple data-photos="' + esc(r.slug) + '"' + (busy.has(r.slug) ? " disabled" : "") + '></label>' +
+         '<label class="btn ghost small grow">Video from my library<input type="file" accept="video/*" data-video="' + esc(r.slug) + '"' + (busy.has(r.slug) ? " disabled" : "") + '></label></div>';
+  }
+  if (p) {
+    const pct = p.total ? Math.round(p.done / p.total * 100) : 0;
+    h += '<div class="prog" aria-live="polite"><span class="lbl">' + esc(p.label) + '</span><div class="track"><div class="fill" style="width:' + pct + '%"></div></div>' + (p.error ? '<span class="err">' + esc(p.error) + '</span>' : "") + (p.ok ? '<span class="ok">' + esc(p.ok) + '</span>' : "") + '</div>';
+  }
+  if (r.media.length || thumbs.length) {
+    h += '<div class="small muted">' + r.media.length + ' image' + (r.media.length === 1 ? "" : "s") + ' saved for this room.</div>';
+    h += '<div class="thumbs">' + thumbs.slice(-24).map((t) => '<div class="th"><img alt="" src="' + t.url + '"><span class="tag">' + (t.kind === "frame" ? "▶ " + Math.round(t.t) + "s" : "photo") + '</span>' + (busy.has(r.slug) ? "" : '<button class="x" type="button" aria-label="Remove" data-del="' + esc(t.file) + '">×</button>') + '</div>').join("") + (others ? '<div class="th ph">+' + others + ' saved<br>earlier</div>' : "") + '</div>';
+  }
+  h += '</section>';
+  h += '<section class="card"><label class="f" for="notes">Anything the camera can\'t see?<textarea id="notes" placeholder="' + esc(special ? "Where you bought things, what you paid, anything with an appraisal." : "Brands, what you paid, how old things are, receipts you have. Example: “Couch from Haverty’s 2023, about $1,800.”") + '">' + esc(r.notes || "") + '</textarea></label><span class="saved" id="notesSaved"></span>' +
+       '<div class="row"><button class="btn solid grow" type="button" id="markDone">' + (r.done ? "Marked done ✓" : (r.media.length ? "Mark this room done" : "Nothing to record here")) + '</button></div></section>';
+  if (IS_IOS && !STANDALONE && !nudged()) h += '<div class="nudge" id="nudge"><span><b>Tip:</b> tap Share <span aria-hidden="true">⎙</span> then <b>Add to Home Screen</b> so this link is always one tap away.</span><button class="btn small ghost" type="button" id="nudgeX">OK</button></div>';
+  app.innerHTML = h;
+  document.getElementById("back").addEventListener("click", () => { view = "rooms"; render(); window.scrollTo(0, 0); });
+  app.querySelectorAll("[data-video]").forEach((i) => i.addEventListener("change", () => { const f = i.files && i.files[0]; if (f) handleVideo(i.dataset.video, f); }));
+  app.querySelectorAll("[data-photos]").forEach((i) => i.addEventListener("change", () => { const fs = [...(i.files || [])]; if (fs.length) handlePhotos(i.dataset.photos, fs); }));
+  app.querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", () => removeMedia(r.slug, b.dataset.del)));
+  const ta = document.getElementById("notes"); let timer = null;
+  const save = async () => { clearTimeout(timer); if ((r.notes || "") === ta.value) return; r.notes = ta.value; try { await api("notes", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ slug: r.slug, notes: ta.value }) }); const s = document.getElementById("notesSaved"); if (s) { s.textContent = "Saved"; setTimeout(() => { if (s) s.textContent = ""; }, 1500); } } catch (e) { toast("Notes didn't save; check your connection"); } };
+  ta.addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(save, 1200); });
+  ta.addEventListener("blur", save);
+  document.getElementById("markDone").addEventListener("click", async () => {
+    r.done = !r.done;
+    try { await api("notes", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ slug: r.slug, notes: ta.value, done: r.done }) }); } catch (e) {}
+    if (r.done) { view = "rooms"; render(); window.scrollTo(0, 0); toast(r.name + " done"); } else render();
+  });
+  const nx = document.getElementById("nudgeX"); if (nx) nx.addEventListener("click", () => { try { localStorage.setItem("rp.nudge", "1"); } catch (e) {} document.getElementById("nudge").remove(); });
+}
+function nudged() { try { return localStorage.getItem("rp.nudge") === "1"; } catch (e) { return true; } }
+function camIcon() { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h3l2-2h6l2 2h3v12H4z"/><circle cx="12" cy="13" r="3.5"/></svg>'; }
+function vidIcon() { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3z"/></svg>'; }
+
+/* ---------- sent / status ---------- */
+function renderSent() {
+  const j = data.job, rec = data.record || null;
+  const state = rec ? rec.state : "received";
+  const steps = [
+    ["Received", "Your walkthrough is in. " + totalImages() + " images across " + rooms().filter((r) => r.media.length).length + " rooms."],
+    ["Building your record", state === "received" ? "Usually within a few hours. We'll email " + esc(j.email) + "." : "Every item by room, with brand, model and value."],
+    ["Ready to unlock", "You'll see your item count and total, then pay to download."],
+    ["Delivered", "Keep the PDF and spreadsheet somewhere safe."],
+  ];
+  const idx = { received: 0, building: 1, needs_more: 1, built: 2, paid: 3, delivered: 3 }[state] ?? 0;
+  let h = '<section class="card">';
+  if (state === "needs_more") {
+    h += '<h1>We need a little more</h1><p>' + esc(rec.message || "A room or two didn't come through clearly. Please re-record them.") + '</p><button class="btn rec big" type="button" id="reopen">Add more</button>';
+  } else if (state === "built") {
+    h += '<h1>Your record is ready</h1>';
+    h += '<div class="stats"><div class="stat"><span class="k">Items</span><span class="bignum">' + esc(rec.items ?? "—") + '</span></div><div class="stat"><span class="k">Rooms</span><span class="bignum">' + esc(rec.rooms ?? "—") + '</span></div><div class="stat"><span class="k">Replacement value</span><span class="bignum">' + (rec.total != null ? money(rec.total) : "—") + '</span></div></div>';
+    if (rec.message) h += '<p class="muted small">' + esc(rec.message) + '</p>';
+    h += '<p>Pay <b>' + money(j.price) + '</b> to unlock the full PDF and spreadsheet. The download appears here within the hour after payment, and we email it too.</p>';
+    if (data.payReady) h += '<a class="btn rec big" href="' + esc(data.payUrl) + '">Pay ' + money(j.price) + ' and unlock</a>';
+    else h += '<p class="err">Payment link coming by email.</p>';
+    h += '<details><summary class="muted small" style="cursor:pointer">Paid already, or paid under a different email?</summary><div class="row" style="margin-top:8px"><input type="text" id="paidNote" placeholder="Name or email you paid with" style="flex:1;min-width:0;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font-size:16px" value="' + esc(j.paidNote || "") + '"><button class="btn small" type="button" id="paidSend">Tell us</button></div></details>';
+  } else if (state === "paid" || state === "delivered") {
+    h += '<h1>Here\'s your record</h1>';
+    h += '<div class="stats"><div class="stat"><span class="k">Items</span><span class="bignum">' + esc(rec.items ?? "—") + '</span></div><div class="stat"><span class="k">Rooms</span><span class="bignum">' + esc(rec.rooms ?? "—") + '</span></div><div class="stat"><span class="k">Replacement value</span><span class="bignum">' + (rec.total != null ? money(rec.total) : "—") + '</span></div></div>';
+    const files = rec.files || [];
+    files.forEach((f) => { const ext = f.split(".").pop().toLowerCase(); h += '<a class="btn ' + (ext === "pdf" ? "rec" : "solid") + ' big" href="/api/job/' + ID + '/file/' + esc(f) + '?k=' + encodeURIComponent(KEY) + '">Download the ' + (ext === "pdf" ? "PDF record" : ext === "csv" ? "spreadsheet (CSV)" : esc(f)) + '</a>'; });
+    if (rec.password) h += '<p class="small muted">The PDF opens with this password:</p><div class="pw">' + esc(rec.password) + '</div>';
+    h += '<p class="muted small">Save both files somewhere outside your home too (email them to yourself, or a cloud drive). This link keeps working, and your raw video frames are deleted 30 days after delivery.</p>';
+  } else {
+    h += '<h1>Sent. We\'re on it.</h1><p>Your record is usually ready within a few hours, and we\'ll email <b>' + esc(j.email) + '</b> the moment it is. You can close this page.</p>';
+  }
+  h += '<ul class="timeline">' + steps.map((s, i) => '<li><span class="dot ' + (i < idx ? "done" : i === idx ? "now" : "") + '">' + (i < idx ? "✓" : "") + '</span><div><b>' + s[0] + '</b><span>' + s[1] + '</span></div></li>').join("") + '</ul>';
+  h += '</section>';
+  if (state === "received" || state === "building") h += '<section class="card"><h2>Forgot a room?</h2><p class="muted small">You can add rooms until we start building.</p><button class="btn" type="button" id="reopen">Add more</button></section>';
+  app.innerHTML = h;
+  const ro = document.getElementById("reopen"); if (ro) ro.addEventListener("click", reopen);
+  const ps = document.getElementById("paidSend"); if (ps) ps.addEventListener("click", async () => { const v = document.getElementById("paidNote").value.trim(); try { await api("paid-note", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text: v }) }); toast("Thanks, we'll match it up"); } catch (e) { toast("Didn't send; try again"); } });
+  clearTimeout(pollTimer);
+  if (state !== "paid" && state !== "delivered") pollTimer = setTimeout(refreshSent, 60000);
+}
+async function refreshSent() { try { await load(); if (view === "sent") render(); } catch (e) {} }
+
+async function confirmSend() {
+  const empty = roomsThatCount().filter((r) => r.kind === "room" && !r.media.length && !r.done);
+  let msg = "Send " + totalImages() + " images to Roomprint now?";
+  if (empty.length) msg += "\n\nNot recorded yet: " + empty.map((r) => r.name).join(", ") + ".\n\nSend anyway? (You can add rooms until we start building.)";
+  if (!confirm(msg)) return;
+  const fb = document.getElementById("footBtn"); fb.disabled = true; fb.textContent = "Sending…";
+  try {
+    const r = await api("done", { method: "POST" });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.message || "Couldn't send.");
+    data.job = j.job; view = "sent"; render(); window.scrollTo(0, 0);
+  } catch (e) { toast(e.message || "Couldn't send"); fb.disabled = false; fb.textContent = "Send to Roomprint"; }
+}
+async function reopen() {
+  try { const r = await api("reopen", { method: "POST" }); const j = await r.json(); if (!r.ok) throw new Error(j.message || "Can't reopen"); data.job = j.job; view = "rooms"; render(); window.scrollTo(0, 0); }
+  catch (e) { toast(e.message || "Can't reopen"); }
+}
+
+/* ---------- rooms ---------- */
+async function addRoom(name) {
+  try {
+    const r = await api("room", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name }) });
+    const j = await r.json(); if (!r.ok) throw new Error(j.message || "Couldn't add the room");
+    data.job = j.job; render(); toast(name + " added");
+  } catch (e) { toast(e.message || "Couldn't add the room"); }
+}
+
+/* ---------- uploads ---------- */
+function progressSet(slug, patch) { progress[slug] = Object.assign(progress[slug] || {}, patch); if (view === "room" && currentSlug === slug) renderRoom(); updateRing(); }
+
+async function upload(slug, blob, kind, t, w, h) {
+  const q = "upload?room=" + encodeURIComponent(slug) + "&kind=" + kind + "&t=" + (t || 0) + "&w=" + (w || 0) + "&h=" + (h || 0);
+  let lastErr = null;
+  for (let attempt = 0; attempt < 4; attempt++) {
+    try {
+      const r = await api(q, { method: "PUT", headers: { "content-type": "image/jpeg" }, body: blob });
+      if (r.ok) return await r.json();
+      const j = await r.json().catch(() => ({}));
+      if (r.status === 409 || r.status === 400 || r.status === 413 || r.status === 415 || r.status === 404) throw Object.assign(new Error(j.message || "Upload refused"), { fatal: true });
+      lastErr = new Error(j.message || ("Upload failed (" + r.status + ")"));
+    } catch (e) { if (e.fatal) throw e; lastErr = e; }
+    await sleep(800 * (attempt + 1));
+  }
+  throw lastErr || new Error("Upload failed");
+}
+
+async function handlePhotos(slug, files) {
+  const r = room(slug); if (!r) return;
+  busy.add(slug); session[slug] = session[slug] || [];
+  progressSet(slug, { label: "Uploading photo 0 of " + files.length, done: 0, total: files.length, error: "", ok: "" });
+  let ok = 0, failed = 0, stop = false;
+  for (let i = 0; i < files.length && !stop; i++) {
+    progressSet(slug, { label: "Uploading photo " + (i + 1) + " of " + files.length, done: i });
+    try {
+      const { blob, w, h } = await toJpeg(files[i], 2000, 0.86);
+      const res = await upload(slug, blob, "photo", 0, w, h);
+      r.media.push({ file: res.file, kind: "photo", t: 0, w, h });
+      session[slug].push({ file: res.file, url: URL.createObjectURL(blob), kind: "photo", t: 0 });
+      ok++;
+    } catch (e) { failed++; progress[slug].error = (files[i].name || "A photo") + ": " + (e.message || "failed"); if (e.fatal) stop = true; }
+  }
+  busy.delete(slug);
+  progressSet(slug, { label: ok + " photo" + (ok === 1 ? "" : "s") + " saved" + (failed ? ", " + failed + " failed" : ""), done: files.length, ok: ok ? "Saved" : "" });
+  if (view === "rooms") render();
+}
+
+async function handleVideo(slug, file) {
+  const r = room(slug); if (!r) return;
+  busy.add(slug); session[slug] = session[slug] || [];
+  progressSet(slug, { label: "Reading your video…", done: 0, total: 1, error: "", ok: "" });
+  let added = 0;
+  try {
+    await extractFrames(file, (phase, done, total) => {
+      progressSet(slug, { label: phase === "scan" ? "Picking the sharpest moments " + done + " of " + total : "Uploading " + done + " of " + total, done, total });
+    }, async (blob, t, w, h) => {
+      const res = await upload(slug, blob, "frame", t, w, h);
+      r.media.push({ file: res.file, kind: "frame", t, w, h });
+      session[slug].push({ file: res.file, url: URL.createObjectURL(blob), kind: "frame", t });
+      added++;
+    });
+    progressSet(slug, { label: added + " moments saved from your video", done: 1, total: 1, ok: added ? "Saved. Record another angle, add label photos, or go back to your rooms." : "" });
+    if (!added) progressSet(slug, { error: "No usable frames found. Try again with more light, moving slowly." });
+  } catch (e) {
+    progressSet(slug, { label: added ? added + " moments saved before it stopped" : "Video not added", error: e.message || "Something went wrong" });
+  }
+  busy.delete(slug);
+  if (view === "room" && currentSlug === slug) renderRoom(); else if (view === "rooms") render();
+}
+
+async function removeMedia(slug, file) {
+  const r = room(slug); if (!r) return;
+  if (!confirm("Remove this image?")) return;
+  try {
+    const res = await api("media/del", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ slug, file }) });
+    if (!res.ok) throw new Error("Couldn't remove");
+    r.media = r.media.filter((m) => m.file !== file);
+    session[slug] = (session[slug] || []).filter((t) => t.file !== file);
+    renderRoom();
+  } catch (e) { toast(e.message || "Couldn't remove"); }
+}
+
+/* ---------- image helpers ---------- */
+async function loadImage(file) {
+  if (window.createImageBitmap) { try { return await createImageBitmap(file, { imageOrientation: "from-image" }); } catch (e) {} }
+  return await new Promise((res, rej) => { const url = URL.createObjectURL(file); const im = new Image(); im.onload = () => res(im); im.onerror = () => { URL.revokeObjectURL(url); rej(new Error("This photo format can't be read here. Try taking the photo from this page.")); }; im.src = url; });
+}
+function canvasToBlob(c, q) { return new Promise((res, rej) => c.toBlob((b) => b ? res(b) : rej(new Error("Couldn't encode the image.")), "image/jpeg", q)); }
+async function toJpeg(file, maxSide, q) {
+  const img = await loadImage(file);
+  const iw = img.width || img.naturalWidth, ih = img.height || img.naturalHeight;
+  const s = Math.min(1, maxSide / Math.max(iw, ih));
+  const w = Math.round(iw * s), h = Math.round(ih * s);
+  const c = document.createElement("canvas"); c.width = w; c.height = h;
+  c.getContext("2d").drawImage(img, 0, 0, w, h);
+  if (img.close) img.close();
+  let blob = await canvasToBlob(c, q);
+  if (blob.size > 2300000) blob = await canvasToBlob(c, 0.7);
+  return { blob, w, h };
+}
+
+/* ---------- video → sharp, distinct frames ---------- */
+function seek(v, t) {
+  return new Promise((res, rej) => {
+    const done = () => { clearTimeout(to); v.removeEventListener("seeked", done); res(); };
+    const to = setTimeout(() => { v.removeEventListener("seeked", done); rej(new Error("The video stopped responding while reading. Try again, or record in standard video mode.")); }, 10000);
+    v.addEventListener("seeked", done);
+    v.currentTime = t;
+  });
+}
+function sharpness(ctx, w, h) {
+  const d = ctx.getImageData(0, 0, w, h).data, g = new Float32Array(w * h);
+  for (let i = 0, j = 0; i < d.length; i += 4, j++) g[j] = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+  let sum = 0, sum2 = 0, n = 0;
+  for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) { const k = y * w + x, lap = 4 * g[k] - g[k - 1] - g[k + 1] - g[k - w] - g[k + w]; sum += lap; sum2 += lap * lap; n++; }
+  const m = sum / n; return sum2 / n - m * m;
+}
+function signature(ctx, w, h) {
+  const c = document.createElement("canvas"); c.width = 16; c.height = 9;
+  const x = c.getContext("2d"); x.drawImage(ctx.canvas, 0, 0, w, h, 0, 0, 16, 9);
+  const d = x.getImageData(0, 0, 16, 9).data, out = [];
+  for (let i = 0; i < d.length; i += 4) out.push((d[i] + d[i + 1] + d[i + 2]) / 3);
+  return out;
+}
+function sigDiff(a, b) { let s = 0; for (let i = 0; i < a.length; i++) s += Math.abs(a[i] - b[i]); return s / a.length; }
+
+async function extractFrames(file, onProgress, onFrame) {
+  const v = document.createElement("video");
+  v.muted = true; v.playsInline = true; v.setAttribute("playsinline", ""); v.setAttribute("webkit-playsinline", ""); v.preload = "auto";
+  const url = URL.createObjectURL(file);
+  v.src = url;
+  try {
+    await new Promise((res, rej) => {
+      const to = setTimeout(() => rej(new Error("This video couldn't be opened. Try recording again from this page.")), 20000);
+      v.onloadeddata = () => { clearTimeout(to); res(); };
+      v.onerror = () => { clearTimeout(to); rej(new Error("This phone can't read that video format here. In Settings → Camera → Formats choose “Most Compatible”, then record again.")); };
+    });
+    try { await v.play(); v.pause(); } catch (e) {}
+    const dur = v.duration;
+    if (!isFinite(dur) || dur <= 0) throw new Error("The video length couldn't be read. Try again.");
+    const vw = v.videoWidth, vh = v.videoHeight;
+    if (!vw || !vh) throw new Error("The video has no picture. Try again.");
+    const sw = 160, sh = Math.max(1, Math.round(160 * vh / vw));
+    const small = document.createElement("canvas"); small.width = sw; small.height = sh;
+    const sctx = small.getContext("2d", { willReadFrequently: true });
+    const STEP = 0.6, WINDOW = 2.0, MAX = 90;
+    const times = []; for (let t = 0.2; t < dur - 0.1; t += STEP) times.push(t);
+    if (!times.length) times.push(Math.min(0.2, dur / 2));
+    const windows = new Map();
+    for (let i = 0; i < times.length; i++) {
+      const t = times[i];
+      await seek(v, t);
+      sctx.drawImage(v, 0, 0, sw, sh);
+      const s = sharpness(sctx, sw, sh);
+      const key = Math.floor(t / WINDOW);
+      const cur = windows.get(key);
+      if (!cur || s > cur.s) windows.set(key, { t, s, sig: signature(sctx, sw, sh) });
+      if (i % 3 === 0 || i === times.length - 1) onProgress("scan", i + 1, times.length);
+    }
+    let picks = [...windows.values()].sort((a, b) => a.t - b.t);
+    const sorted = picks.map((p) => p.s).sort((a, b) => a - b);
+    const median = sorted[Math.floor(sorted.length / 2)] || 0;
+    const kept = [];
+    for (const p of picks) {
+      if (p.s < median * 0.3) continue;                      // too blurry
+      const last = kept[kept.length - 1];
+      if (last && sigDiff(last.sig, p.sig) < 5) continue;   // same view as the last one
+      kept.push(p);
+    }
+    if (!kept.length && picks.length) kept.push(picks.reduce((a, b) => (b.s > a.s ? b : a)));
+    console.debug("roomprint frames", { duration: Math.round(dur * 10) / 10, size: vw + "x" + vh, sampled: times.length, windows: windows.size, kept: kept.length, median: Math.round(median) });
+    picks = kept.slice(0, MAX);
+    const scale = Math.min(1, 1400 / Math.max(vw, vh));
+    const big = document.createElement("canvas"); big.width = Math.round(vw * scale); big.height = Math.round(vh * scale);
+    const bctx = big.getContext("2d");
+    for (let i = 0; i < picks.length; i++) {
+      await seek(v, picks[i].t);
+      bctx.drawImage(v, 0, 0, big.width, big.height);
+      const blob = await canvasToBlob(big, 0.82);
+      await onFrame(blob, Math.round(picks[i].t * 10) / 10, big.width, big.height);
+      onProgress("upload", i + 1, picks.length);
+    }
+  } finally {
+    v.removeAttribute("src"); try { v.load(); } catch (e) {} URL.revokeObjectURL(url);
+  }
+}
+})();
+</script>
+</body>
+</html>
