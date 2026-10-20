@@ -99,7 +99,8 @@
 
     var map = L.map(mapEl, {
       zoomControl: false,
-      minZoom: 3,
+      attributionControl: false,
+      minZoom: 2,
       maxZoom: 9,
       zoomSnap: 0.25,
       scrollWheelZoom: false,
@@ -108,11 +109,6 @@
       maxBoundsViscosity: 0.7
     });
     L.control.zoom({ position: "topright" }).addTo(map);
-    map.attributionControl.setPrefix(false);
-    map.attributionControl.addAttribution(
-      'Radar: NOAA NEXRAD via <a href="https://mesonet.agron.iastate.edu/">Iowa Environmental Mesonet</a>. ' +
-      'Alerts: <a href="https://www.weather.gov/">National Weather Service</a>. Quakes: <a href="https://earthquake.usgs.gov/">USGS</a>. Borders: U.S. Census Bureau.'
-    );
 
     map.createPane("land").style.zIndex = 200;
     map.createPane("radar").style.zIndex = 300;

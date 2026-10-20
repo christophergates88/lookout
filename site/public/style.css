@@ -168,6 +168,8 @@ section .intro { color: var(--muted); max-width: var(--measure); margin: 0 0 2.5
 
 .alert-count { margin: 2rem 0 0; max-width: 40rem; font-size: 1.1rem; }
 .loc-note { margin: 0.75rem 0 0; color: var(--muted); font-size: 0.85rem; }
+.map-credit { margin: 0.35rem 0 0; color: #6f7f92; font-size: 0.78rem; }
+.map-credit a { color: inherit; }
 
 /* Leaflet, restyled to match */
 .leaflet-container { background: var(--deep); font-family: inherit; }
