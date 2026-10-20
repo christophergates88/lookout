@@ -75,6 +75,7 @@ struct SettingsView: View {
                 #if DEBUG
                 Section("Testing (Xcode builds only)") {
                     Toggle("Pretend I have Pro", isOn: Binding(get: { store.debugPro }, set: { store.setDebugPro($0) }))
+                    StoreProductsCheck()
                 }
                 .listRowBackground(Color.lkPanel)
                 #endif
@@ -107,3 +108,23 @@ struct SettingsView: View {
         }
     }
 }
+
+#if DEBUG
+/// Xcode builds only: shows which Lookout Pro products the App Store returns.
+private struct StoreProductsCheck: View {
+    @State private var result = "Checking App Store products…"
+    var body: some View {
+        Text(result).font(.caption).foregroundStyle(Color.lkMuted)
+            .task {
+                do {
+                    let products = try await Product.products(for: AppConfig.proProductIDs)
+                    let found = products.map { "\($0.id) \($0.displayPrice) intro:\($0.subscription?.introductoryOffer?.paymentMode.rawValue ?? "none")" }
+                    let missing = AppConfig.proProductIDs.filter { id in !products.contains { $0.id == id } }
+                    result = "Found: " + (found.isEmpty ? "none" : found.joined(separator: "; ")) + "\nMissing: " + (missing.isEmpty ? "none" : missing.joined(separator: ", "))
+                } catch {
+                    result = "Error: \(error)"
+                }
+            }
+    }
+}
+#endif

@@ -6,7 +6,7 @@
 **Price:** Free with in-app subscription (Lookout Pro $2.99/month or $19.99/year, 1-week free trial)
 
 **Promotional text (170 max):**
-Know what's around you before you're in it. National Weather Service warnings, live radar and public cameras for exactly where you are, plus a Drive mode built for the road.
+Know what's around you before you're in it. National Weather Service warnings, live radar and public cameras for where you are, plus a Drive mode built for the road.
 
 **Description:**
 Lookout shows you what's happening right where you are: weather, official warnings, radar and live public cameras, updated as you move.

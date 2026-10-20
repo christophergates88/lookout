@@ -8,15 +8,15 @@ struct PaywallView: View {
 
     var body: some View {
         SubscriptionStoreView(productIDs: AppConfig.proProductIDs) {
-            VStack(spacing: 14) {
-                LogoMark(size: 72)
+            VStack(spacing: 8) {
+                LogoMark(size: 48)
                 Text("Lookout Pro")
                     .font(.largeTitle.bold())
                     .foregroundStyle(Color.lkText)
                 Text("See what's coming before you're in it.")
                     .font(.headline)
                     .foregroundStyle(Color.lkMuted)
-                VStack(alignment: .leading, spacing: 10) {
+                VStack(alignment: .leading, spacing: 8) {
                     ProFeatureRow(symbol: "steeringwheel", title: "Drive mode", text: "Big, glanceable screen with alerts read aloud and cameras ahead on your route.")
                     ProFeatureRow(symbol: "cloud.rain", title: "Live radar", text: "NEXRAD radar over your map, with warning areas drawn on top.")
                     ProFeatureRow(symbol: "bell.badge", title: "Background alerts", text: "A notification when a new warning covers you or a saved place.")
@@ -24,11 +24,12 @@ struct PaywallView: View {
                     ProFeatureRow(symbol: "video", title: "Every nearby camera", text: "All public cameras around you, closest first, not just the nearest \(AppConfig.freeCameraCount).")
                     ProFeatureRow(symbol: "exclamationmark.triangle", title: "Storm risk", text: "Today's Storm Prediction Center severe-weather risk where you are.")
                 }
-                .padding(.top, 6)
+                .padding(.top, 4)
             }
             .padding(.horizontal, 20)
-            .padding(.top, 24)
+            .padding(.top, 8)
         }
+        .modifier(CompactPlanPicker())
         .storeButton(.visible, for: .restorePurchases)
         .subscriptionStorePolicyDestination(url: AppConfig.termsURL, for: .termsOfService)
         .subscriptionStorePolicyDestination(url: AppConfig.privacyURL, for: .privacyPolicy)
@@ -39,6 +40,17 @@ struct PaywallView: View {
             if isPro { dismiss() }
         }
         .background(Color.lkGround)
+    }
+}
+
+/// Shows the monthly and yearly plans side by side so both are visible without scrolling.
+private struct CompactPlanPicker: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(iOS 18.0, *) {
+            content.subscriptionStoreControlStyle(.compactPicker)
+        } else {
+            content.subscriptionStoreControlStyle(.picker)
+        }
     }
 }
 
@@ -56,6 +68,7 @@ private struct ProFeatureRow: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(title).font(.subheadline.bold()).foregroundStyle(Color.lkText)
                 Text(text).font(.footnote).foregroundStyle(Color.lkMuted)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
     }
