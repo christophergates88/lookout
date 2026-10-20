@@ -7,6 +7,9 @@ struct MapScreen: View {
     @Environment(ProStore.self) private var store
     @AppStorage("mapRadar") private var radarOn = true
     @AppStorage("mapTraffic") private var trafficOn = true
+    @AppStorage("mapPlanes") private var planesOn = true
+    @AppStorage("mapQuakes") private var quakesOn = true
+    @State private var web: WebLink?
     @State private var openCamera: Camera?
     @State private var openAlert: NWSAlert?
     @State private var showPaywall = false
@@ -21,33 +24,57 @@ struct MapScreen: View {
                     alerts: model.alerts,
                     radar: store.isPro && radarOn,
                     traffic: trafficOn,
+                    aircraft: planesOn ? model.aircraft : [],
+                    quakes: quakesOn ? model.quakes : [],
                     recenter: recenter,
                     onCamera: { openCamera = $0 },
-                    onAlert: { openAlert = $0 }
+                    onAlert: { openAlert = $0 },
+                    onLink: { web = WebLink(url: $0) }
                 )
                 .ignoresSafeArea(edges: .top)
 
                 HStack(spacing: 10) {
-                    Button {
-                        if store.isPro { radarOn.toggle() } else { showPaywall = true }
-                    } label: {
-                        Label("Radar", systemImage: "cloud.rain")
-                            .padding(.horizontal, 12).padding(.vertical, 8)
-                            .background(store.isPro && radarOn ? Color.lkAmber : Color.lkPanel, in: Capsule())
-                            .foregroundStyle(store.isPro && radarOn ? Color.lkAmberInk : Color.lkText)
-                            .overlay(alignment: .topTrailing) {
-                                if !store.isPro { Pill(text: "PRO").offset(x: 10, y: -10) }
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 10) {
+                            Button {
+                                if store.isPro { radarOn.toggle() } else { showPaywall = true }
+                            } label: {
+                                Label("Radar", systemImage: "cloud.rain")
+                                    .padding(.horizontal, 12).padding(.vertical, 8)
+                                    .background(store.isPro && radarOn ? Color.lkAmber : Color.lkPanel, in: Capsule())
+                                    .foregroundStyle(store.isPro && radarOn ? Color.lkAmberInk : Color.lkText)
+                                    .overlay(alignment: .topTrailing) {
+                                        if !store.isPro { Pill(text: "PRO").offset(x: 10, y: -10) }
+                                    }
                             }
+                            Button {
+                                trafficOn.toggle()
+                            } label: {
+                                Label("Traffic", systemImage: "car.fill")
+                                    .padding(.horizontal, 12).padding(.vertical, 8)
+                                    .background(trafficOn ? Color.lkAmber : Color.lkPanel, in: Capsule())
+                                    .foregroundStyle(trafficOn ? Color.lkAmberInk : Color.lkText)
+                            }
+                            Button {
+                                planesOn.toggle()
+                            } label: {
+                                Label("Planes", systemImage: "airplane")
+                                    .padding(.horizontal, 12).padding(.vertical, 8)
+                                    .background(planesOn ? Color.lkAmber : Color.lkPanel, in: Capsule())
+                                    .foregroundStyle(planesOn ? Color.lkAmberInk : Color.lkText)
+                            }
+                            Button {
+                                quakesOn.toggle()
+                            } label: {
+                                Label("Quakes", systemImage: "waveform.path.ecg")
+                                    .padding(.horizontal, 12).padding(.vertical, 8)
+                                    .background(quakesOn ? Color.lkAmber : Color.lkPanel, in: Capsule())
+                                    .foregroundStyle(quakesOn ? Color.lkAmberInk : Color.lkText)
+                            }
+                        }
+                        .padding(.top, 10)
+                        .padding(.trailing, 6)
                     }
-                    Button {
-                        trafficOn.toggle()
-                    } label: {
-                        Label("Traffic", systemImage: "car.fill")
-                            .padding(.horizontal, 12).padding(.vertical, 8)
-                            .background(trafficOn ? Color.lkAmber : Color.lkPanel, in: Capsule())
-                            .foregroundStyle(trafficOn ? Color.lkAmberInk : Color.lkText)
-                    }
-                    Spacer()
                     Button {
                         recenter += 1
                     } label: {
@@ -62,6 +89,14 @@ struct MapScreen: View {
                 .padding(.bottom, 14)
             }
             .toolbar(.hidden, for: .navigationBar)
+            .task(id: planesOn) {
+                // Planes move fast: refresh them every 30 seconds while the map is open.
+                while planesOn && !Task.isCancelled {
+                    await model.refreshAircraft(for: location.coordinate)
+                    try? await Task.sleep(for: .seconds(location.coordinate == nil ? 5 : 30))
+                }
+            }
+            .sheet(item: $web) { SafariView(url: $0.url).ignoresSafeArea() }
             .sheet(item: $openCamera) { CameraDetailView(camera: $0) }
             .sheet(item: $openAlert) { AlertDetailView(alert: $0) }
             .sheet(isPresented: $showPaywall) { PaywallView() }
@@ -82,15 +117,86 @@ final class AlertShape: MKPolygon {
     var alert: NWSAlert?
 }
 
+final class PlanePin: NSObject, MKAnnotation {
+    var plane: Aircraft
+    @objc dynamic var coordinate: CLLocationCoordinate2D
+    var title: String? { plane.callsign }
+    var subtitle: String? { plane.summary }
+    init(_ plane: Aircraft) { self.plane = plane; coordinate = plane.coordinate }
+}
+
+final class QuakePin: NSObject, MKAnnotation {
+    let quake: Quake
+    var coordinate: CLLocationCoordinate2D { quake.coordinate }
+    var title: String? { String(format: "Magnitude %.1f earthquake", quake.magnitude) }
+    var subtitle: String? { quake.place + ", " + quake.time.formatted(.relative(presentation: .named)) }
+    init(_ quake: Quake) { self.quake = quake }
+}
+
+/// A small airplane that points the way it's flying.
+final class PlaneView: MKAnnotationView {
+    private let icon = UIImageView(image: UIImage(systemName: "airplane"))
+
+    override init(annotation: MKAnnotation?, reuseIdentifier: String?) {
+        super.init(annotation: annotation, reuseIdentifier: reuseIdentifier)
+        frame = CGRect(x: 0, y: 0, width: 26, height: 26)
+        icon.frame = bounds
+        icon.contentMode = .scaleAspectFit
+        icon.tintColor = UIColor(red: 0.92, green: 0.95, blue: 0.98, alpha: 1)
+        icon.layer.shadowColor = UIColor.black.cgColor
+        icon.layer.shadowOpacity = 0.9
+        icon.layer.shadowRadius = 2
+        icon.layer.shadowOffset = .zero
+        addSubview(icon)
+        canShowCallout = true
+        rightCalloutAccessoryView = UIButton(type: .detailDisclosure)
+        displayPriority = .defaultHigh
+    }
+
+    required init?(coder: NSCoder) { fatalError() }
+
+    func apply(_ plane: Aircraft) {
+        // The symbol points east; turn it to the plane's track.
+        let deg = (plane.track ?? 90) - 90
+        icon.transform = CGAffineTransform(rotationAngle: CGFloat(deg * .pi / 180))
+        icon.alpha = plane.onGround ? 0.5 : 1
+    }
+}
+
+/// A dot sized by magnitude.
+final class QuakeView: MKAnnotationView {
+    override init(annotation: MKAnnotation?, reuseIdentifier: String?) {
+        super.init(annotation: annotation, reuseIdentifier: reuseIdentifier)
+        canShowCallout = true
+        rightCalloutAccessoryView = UIButton(type: .detailDisclosure)
+        displayPriority = .defaultHigh
+    }
+
+    required init?(coder: NSCoder) { fatalError() }
+
+    func apply(_ q: Quake) {
+        let d = CGFloat(10 + max(0, q.magnitude) * 5)
+        frame = CGRect(x: 0, y: 0, width: d, height: d)
+        layer.cornerRadius = d / 2
+        let strong = q.magnitude >= 3
+        backgroundColor = (strong ? UIColor(red: 1, green: 0.38, blue: 0.38, alpha: 1) : UIColor(red: 0.96, green: 0.6, blue: 0.2, alpha: 1)).withAlphaComponent(0.75)
+        layer.borderColor = UIColor.white.withAlphaComponent(0.9).cgColor
+        layer.borderWidth = 1.5
+    }
+}
+
 struct LookoutMap: UIViewRepresentable {
     var center: CLLocationCoordinate2D?
     var cameras: [Camera]
     var alerts: [NWSAlert]
     var radar: Bool
     var traffic: Bool
+    var aircraft: [Aircraft]
+    var quakes: [Quake]
     var recenter: Int
     var onCamera: (Camera) -> Void
     var onAlert: (NWSAlert) -> Void
+    var onLink: (URL) -> Void
 
     func makeCoordinator() -> Coordinator { Coordinator() }
 
@@ -124,6 +230,33 @@ struct LookoutMap: UIViewRepresentable {
             c.cameraIDs = camIDs
             map.removeAnnotations(map.annotations.filter { $0 is CameraPin })
             map.addAnnotations(cameras.map(CameraPin.init))
+        }
+
+        // Planes: move the ones still in view, add new ones, drop the rest.
+        var stillHere = Set<String>()
+        for plane in aircraft {
+            stillHere.insert(plane.id)
+            if let pin = c.planes[plane.id] {
+                pin.plane = plane
+                pin.coordinate = plane.coordinate
+                (map.view(for: pin) as? PlaneView)?.apply(plane)
+            } else {
+                let pin = PlanePin(plane)
+                c.planes[plane.id] = pin
+                map.addAnnotation(pin)
+            }
+        }
+        for (id, pin) in c.planes where !stillHere.contains(id) {
+            map.removeAnnotation(pin)
+            c.planes[id] = nil
+        }
+
+        // Earthquakes
+        let quakeIDs = quakes.map(\.id)
+        if quakeIDs != c.quakeIDs {
+            c.quakeIDs = quakeIDs
+            map.removeAnnotations(map.annotations.filter { $0 is QuakePin })
+            map.addAnnotations(quakes.map(QuakePin.init))
         }
 
         // Alert areas
@@ -164,6 +297,8 @@ struct LookoutMap: UIViewRepresentable {
         var alertIDs: [String] = []
         var radarStamp = 0
         var radarOverlay: MKTileOverlay?
+        var planes: [String: PlanePin] = [:]
+        var quakeIDs: [String] = []
 
         func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
             if let tiles = overlay as? MKTileOverlay {
@@ -184,6 +319,20 @@ struct LookoutMap: UIViewRepresentable {
         }
 
         func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
+            if let pin = annotation as? PlanePin {
+                let view = (mapView.dequeueReusableAnnotationView(withIdentifier: "plane") as? PlaneView)
+                    ?? PlaneView(annotation: pin, reuseIdentifier: "plane")
+                view.annotation = pin
+                view.apply(pin.plane)
+                return view
+            }
+            if let pin = annotation as? QuakePin {
+                let view = (mapView.dequeueReusableAnnotationView(withIdentifier: "quake") as? QuakeView)
+                    ?? QuakeView(annotation: pin, reuseIdentifier: "quake")
+                view.annotation = pin
+                view.apply(pin.quake)
+                return view
+            }
             guard annotation is CameraPin else { return nil }
             let id = "cam"
             let view = (mapView.dequeueReusableAnnotationView(withIdentifier: id) as? MKMarkerAnnotationView)
@@ -197,10 +346,18 @@ struct LookoutMap: UIViewRepresentable {
         }
 
         func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
-            if let pin = view.annotation as? CameraPin {
-                parent?.onCamera(pin.camera)
+            // Planes and quakes show a callout; cameras open their own screen.
+            guard let pin = view.annotation as? CameraPin else { return }
+            parent?.onCamera(pin.camera)
+            mapView.deselectAnnotation(pin, animated: false)
+        }
+
+        func mapView(_ mapView: MKMapView, annotationView view: MKAnnotationView, calloutAccessoryControlTapped control: UIControl) {
+            if let pin = view.annotation as? PlanePin, let url = pin.plane.trackURL {
+                parent?.onLink(url)
+            } else if let pin = view.annotation as? QuakePin, let url = pin.quake.url {
+                parent?.onLink(url)
             }
-            mapView.deselectAnnotation(view.annotation, animated: false)
         }
 
         /// Tapping inside a warning area opens it.

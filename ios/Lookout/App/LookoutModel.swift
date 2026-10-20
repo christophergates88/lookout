@@ -12,6 +12,14 @@ final class LookoutModel {
     private(set) var alerts: [NWSAlert] = []
     private(set) var cameras: [Camera] = []
     private(set) var risk: StormRisk?
+    /// Town, county and state, for the scanner, safety and news links.
+    private(set) var area: LocalArea?
+    private(set) var news: [NewsStory] = []
+    private(set) var newsLoading = false
+    private(set) var newsFailed = false
+    private(set) var aircraft: [Aircraft] = []
+    private(set) var aircraftUpdatedAt: Date?
+    private(set) var quakes: [Quake] = []
     private(set) var weatherError: String?
     private(set) var cameraError: String?
     private(set) var loading = false
@@ -40,7 +48,10 @@ final class LookoutModel {
         async let alertsTask = attempt { try await NWS.alerts(at: c) }
         async let camsTask = attempt { try await Windy.nearby(c) }
         async let riskTask = attempt { try await SPC.day1Risk(at: c) }
+        async let areaTask = LocalArea.lookup(c)
+        async let quakesTask = attempt { try await Sky.quakes(near: c) }
         let (f, a, cams, r) = await (forecastTask, alertsTask, camsTask, riskTask)
+        let (foundArea, q) = await (areaTask, quakesTask)
 
         switch f {
         case .success(let fc):
@@ -63,9 +74,35 @@ final class LookoutModel {
             cameraError = "Cameras didn't load. Pull down to try again."
         }
         if case .success(let rk) = r { risk = rk }
+        if case .success(let list) = q { quakes = list }
+        if let foundArea { area = foundArea }
 
         loadedFor = c
         updatedAt = Date()
+
+        Task { await refreshNews() }
+    }
+
+    /// Local headlines for the current town and county.
+    func refreshNews() async {
+        guard let area, !newsLoading else { return }
+        newsLoading = true
+        defer { newsLoading = false }
+        do {
+            news = try await LocalNews.stories(for: area)
+            newsFailed = false
+        } catch {
+            // Keep any stories we already have; the screens offer Google News links either way.
+            newsFailed = news.isEmpty
+        }
+    }
+
+    /// Planes overhead. Called by the map every 30 seconds while the layer is on.
+    func refreshAircraft(for c: CLLocationCoordinate2D?) async {
+        guard let c else { return }
+        if let t = aircraftUpdatedAt, Date().timeIntervalSince(t) < 20 { return }
+        aircraftUpdatedAt = Date()
+        if let list = try? await Sky.aircraft(near: c) { aircraft = list }
     }
 }
 

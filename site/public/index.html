@@ -3,17 +3,29 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Lookout: Storm &amp; Road Cams for iPhone</title>
-<meta name="description" content="National Weather Service warnings, live radar and nearby public road cameras for exactly where you are. Free for iPhone, with a Drive mode built for the road.">
-<meta property="og:title" content="Lookout: Storm &amp; Road Cams">
-<meta property="og:description" content="Warnings, radar and live cameras for where you are. Free for iPhone.">
-<meta property="og:image" content="https://getlookoutapp.com/img/1-now-880.jpg">
+<title>Lookout: Scanner &amp; Road Cams for iPhone</title>
+<meta name="description" content="Police and fire scanners, live road cameras, crash reports, weather warnings, planes overhead and local news for exactly where you are. Free for iPhone.">
+<link rel="canonical" href="https://getlookoutapp.com/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://getlookoutapp.com/">
+<meta property="og:title" content="Lookout: Scanner &amp; Road Cams">
+<meta property="og:description" content="Scanners, live cameras, warnings and local news for where you are. Free for iPhone.">
+<meta property="og:image" content="https://getlookoutapp.com/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Lookout on iPhone showing police, fire and EMS scanner feeds and traffic reports for Putnam County, Georgia.">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#0c1118">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/press/lookout-icon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Overpass:wght@400;600;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Overpass:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H" crossorigin="anonymous">
 <link rel="stylesheet" href="/style.css">
+<script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js" integrity="sha384-Ukv1p/xTma6P4/2bY5KzWBw+ydSpXmhCMtyciIQVDJ1RmOxtCYNMF1uXT9T63H67" crossorigin="anonymous"></script>
+<script defer src="/site.js"></script>
 </head>
 <body>
 
@@ -24,7 +36,11 @@
       Lookout
     </a>
     <nav aria-label="Main">
+      <a href="#scanner">Scanner</a>
+      <a class="wide" href="#live">Live map</a>
+      <a class="wide" href="#drive">Drive mode</a>
       <a href="#pro">Lookout Pro</a>
+      <a class="wide" href="#faq">FAQ</a>
       <a href="/support">Support</a>
     </nav>
   </header>
@@ -32,14 +48,14 @@
   <main>
     <div class="hero">
       <div>
-        <p class="bulletin">Warnings show up the moment they're issued for your spot</p>
-        <h1>Know what's coming before you're in it.</h1>
-        <p class="lede">Lookout puts National Weather Service warnings, radar and the public road cameras near you on one screen, for exactly where you are right now.</p>
+        <p class="bulletin">Live for wherever you are in the U.S.</p>
+        <h1>Know what's going on around you.</h1>
+        <p class="lede">Police and fire scanners, live road cameras, crash and hazard reports, weather warnings, planes overhead and local news, together in one app for exactly where you are.</p>
         <a class="store" href="/#pro" aria-disabled="true">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.4 12.6c0-2.4 2-3.6 2.1-3.7-1.2-1.7-3-1.9-3.6-2-1.5-.2-3 .9-3.8.9-.8 0-2-.9-3.3-.9-1.7 0-3.3 1-4.2 2.5-1.8 3.1-.5 7.7 1.3 10.2.9 1.2 1.9 2.6 3.2 2.6 1.3-.1 1.8-.8 3.3-.8 1.6 0 2 .8 3.3.8 1.4 0 2.3-1.3 3.1-2.5 1-1.4 1.4-2.8 1.4-2.9 0 0-2.8-1.1-2.8-4.2zM13.9 5.2c.7-.8 1.2-2 1-3.2-1 .1-2.2.7-3 1.5-.6.7-1.2 1.9-1 3.1 1.1.1 2.3-.6 3-1.4z"/></svg>
           Coming soon to the App Store
         </a>
-        <p class="fine">Free for iPhone. Weather data covers the United States.</p>
+        <p class="fine">Free for iPhone. Works anywhere in the United States.</p>
       </div>
 
       <div class="scope">
@@ -51,26 +67,86 @@
           <defs><linearGradient id="beam" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#f5b63f" stop-opacity="0"/><stop offset="1" stop-color="#f5b63f" stop-opacity=".22"/></linearGradient></defs>
         </svg>
         <div class="phone">
-          <img src="/img/1-now-440.jpg" srcset="/img/1-now-440.jpg 440w, /img/1-now-880.jpg 880w" sizes="19rem" width="440" height="956" alt="Lookout's Now screen for Eatonton, Georgia: a Special Weather Statement, 68 degrees and sunny, no severe storms expected, the next 12 hours, and the two nearest road cameras.">
+          <img src="/img/1-now-440.jpg" srcset="/img/1-now-440.jpg 440w, /img/1-now-880.jpg 880w" sizes="19rem" width="440" height="956" alt="Lookout's Now screen for Eatonton, Georgia: a Special Weather Statement, the temperature, the next 12 hours, and the two nearest road cameras.">
         </div>
       </div>
     </div>
 
+    <section id="scanner" class="drive" aria-labelledby="scanner-title">
+      <div class="drive-grid">
+        <div>
+          <h2 id="scanner-title">Your county's scanner, one tap away.</h2>
+          <p class="intro">Lookout finds the live police, fire and EMS radio for where you are, what drivers are reporting on the road, and what's making the local news. All of it is free.</p>
+          <dl class="points">
+            <div>
+              <dt>Police, fire and EMS radio</dt>
+              <dd>Live scanner feeds for your state and county from Broadcastify, and recent dispatch calls you can replay from OpenMHz.</dd>
+            </div>
+            <div>
+              <dt>Crashes, police and hazards</dt>
+              <dd>What drivers are reporting on Waze around you, plus your state's official 511 road conditions and cameras.</dd>
+            </div>
+            <div>
+              <dt>Public safety and local news</dt>
+              <dd>911 incident reports from Citizen in larger metro areas, crime maps, power outages, wildfires and headlines that name your town.</dd>
+            </div>
+          </dl>
+          <p class="fine">Scanner feeds come from volunteers, so some counties don't have one. Everything opens right inside Lookout.</p>
+        </div>
+        <div class="phone">
+          <img src="/img/6-scanner-440.jpg" srcset="/img/6-scanner-440.jpg 440w, /img/6-scanner-880.jpg 880w" sizes="20rem" width="440" height="956" loading="lazy" alt="Lookout's Scanner tab for Putnam County, Georgia: scanner feeds, recent dispatch calls, Waze crash and police reports, and Georgia 511 road conditions.">
+        </div>
+      </div>
+    </section>
+
+    <section id="live" aria-labelledby="radar-title">
+      <div class="radar-head">
+        <h2 id="radar-title">What's happening across the U.S. right now.</h2>
+        <p class="intro">Live NOAA radar, the National Weather Service's storm alerts and the past day's earthquakes. In the app, your map also shows the planes overhead, traffic and the cameras near you. Tap an outlined area or a quake to see what it is.</p>
+      </div>
+
+      <div id="radar-map" class="radar-map" role="region" aria-label="Live map of the United States with radar, weather alerts and earthquakes">
+        <noscript><p class="fallback">The live radar map needs JavaScript.</p></noscript>
+      </div>
+
+      <div class="radar-bar">
+        <div class="radar-actions">
+          <button type="button" class="btn" id="radar-me">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="6" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="2" fill="currentColor"/></svg>
+            <span>Show my area</span>
+          </button>
+          <button type="button" class="btn ghost" id="radar-all"><span>Whole country</span></button>
+        </div>
+        <p class="radar-time" id="radar-time" aria-live="polite">Loading the latest radar.</p>
+      </div>
+      <p class="loc-note" id="loc-note">Your location only moves this map. It isn't sent to us.</p>
+
+      <div class="legend">
+        <div class="ramp" aria-hidden="true">
+          <span class="ramp-bar"></span>
+          <span class="ramp-labels"><span>Light rain</span><span>Heavy rain, hail</span></span>
+        </div>
+        <ul class="keys">
+          <li><i class="key severe" aria-hidden="true"></i>Warnings <span id="n-severe"></span></li>
+          <li><i class="key other" aria-hidden="true"></i>Statements and advisories <span id="n-other"></span></li>
+          <li><i class="key quake" aria-hidden="true"></i>Earthquakes, past day <span id="n-quakes"></span></li>
+        </ul>
+      </div>
+
+      <p class="alert-count" id="alert-count">Lookout shows you the alerts for exactly where you are.</p>
+    </section>
+
     <section aria-labelledby="screens-title">
       <h2 id="screens-title">Everything around you, one tap apart</h2>
-      <p class="intro">No account to make. Allow location once, and Lookout loads the weather, warnings and cameras for wherever you are, then keeps them fresh as you move.</p>
+      <p class="intro">No account to make. Allow location once, and Lookout loads everything for wherever you are, then keeps it fresh as you move.</p>
       <div class="screens">
         <figure>
-          <img src="/img/2-map-440.jpg" width="440" height="956" loading="lazy" alt="Map of central Georgia with traffic and camera pins from Athens to Macon.">
-          <figcaption><strong>Map</strong><span>Live traffic, warning areas and radar, with every nearby camera pinned.</span></figcaption>
+          <img src="/img/7-planes-440.jpg" width="440" height="956" loading="lazy" alt="Map of central Georgia from Athens to Macon with planes overhead and road camera pins.">
+          <figcaption><strong>Map</strong><span>Planes overhead, earthquakes, traffic, warning areas and radar, with nearby cameras pinned.</span></figcaption>
         </figure>
         <figure>
           <img src="/img/3-cameras-440.jpg" width="440" height="956" loading="lazy" alt="Grid of public road cameras around Eatonton, Lake Oconee, Madison and Milledgeville, closest first.">
           <figcaption><strong>Cameras</strong><span>Public cameras near you, closest first, so you can see the road before you get there.</span></figcaption>
-        </figure>
-        <figure>
-          <img src="/img/4-drive-440.jpg" width="440" height="956" loading="lazy" alt="Drive mode showing a large Special Weather Statement banner, speed, temperature and the camera ahead.">
-          <figcaption><strong>Drive mode</strong><span>Big text, your speed, new warnings read aloud and the camera ahead on your route.</span></figcaption>
         </figure>
         <figure>
           <img src="/img/5-pro-440.jpg" width="440" height="956" loading="lazy" alt="Lookout Pro screen listing Drive mode, live radar, background alerts, 20 places, every nearby camera and storm risk.">
@@ -79,34 +155,74 @@
       </div>
     </section>
 
+    <section id="drive" class="drive" aria-labelledby="drive-title">
+      <div class="drive-grid">
+        <div>
+          <h2 id="drive-title">Drive mode, made for a glance.</h2>
+          <p class="intro">Mount your phone and tap Drive. Lookout switches to one high-contrast screen with everything in big type. Drive mode is part of Lookout Pro.</p>
+          <dl class="points">
+            <div>
+              <dt>New warnings, out loud</dt>
+              <dd>When the National Weather Service issues a warning for where you are, your phone buzzes and Lookout reads it over your music.</dd>
+            </div>
+            <div>
+              <dt>The camera ahead</dt>
+              <dd>The nearest public camera in the direction you're driving, up to about 30 miles out, so you can see the road before you reach it.</dd>
+            </div>
+            <div>
+              <dt>Speed, heading and rain</dt>
+              <dd>Your speed and compass heading, the temperature, and when rain is likely in the next 6 hours.</dd>
+            </div>
+          </dl>
+          <button type="button" class="btn" id="hear-alert" aria-pressed="false" hidden>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 9v6h4l5 4V5L8 9H4z"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>
+            <span>Hear a sample alert</span>
+          </button>
+          <p class="fine" id="hear-note" hidden>What Drive mode says when a new warning comes in, played in your browser's voice.</p>
+        </div>
+        <div class="phone">
+          <img src="/img/4-drive-440.jpg" srcset="/img/4-drive-440.jpg 440w, /img/4-drive-880.jpg 880w" sizes="20rem" width="440" height="956" loading="lazy" alt="Drive mode: a large Special Weather Statement banner, speed and heading, the temperature, and the camera ahead.">
+        </div>
+      </div>
+    </section>
+
     <section id="pro" aria-labelledby="pro-title">
       <h2 id="pro-title">Free to use. Pro when the weather turns.</h2>
-      <p class="intro">The free version covers the basics for wherever you are. Lookout Pro adds the tools for driving and for watching the people and places you care about.</p>
-      <div class="plans">
-        <div class="plan">
-          <h3>Free</h3>
-          <p class="price">No account, no ads</p>
-          <ul>
-            <li>Current conditions, 12-hour and 7-day forecast</li>
-            <li>National Weather Service alerts for your spot</li>
-            <li>Warning areas drawn on the map</li>
-            <li>Map with live Apple traffic</li>
-            <li>The 3 nearest public cameras</li>
-            <li>1 saved place</li>
-          </ul>
-        </div>
-        <div class="plan pro">
-          <h3>Lookout Pro</h3>
-          <p class="price">$2.99 a month or $19.99 a year, after a free week</p>
-          <ul>
-            <li>Drive mode with warnings read aloud</li>
-            <li>Live NEXRAD radar on the map</li>
-            <li>Background warning alerts for you and your places</li>
-            <li>Every public camera nearby, up to 50</li>
-            <li>Up to 20 saved places</li>
-            <li>Today's storm risk from the Storm Prediction Center</li>
-          </ul>
-        </div>
+      <p class="intro">Scanners, cameras, reports and news are free. Lookout Pro adds the tools for driving and for watching the people and places you care about.</p>
+      <div class="compare-wrap">
+        <table class="compare">
+          <caption class="sr-only">What's included in Lookout and Lookout Pro</caption>
+          <thead>
+            <tr>
+              <th scope="col"><span class="sr-only">Feature</span></th>
+              <th scope="col">Free<span>No account, no ads</span></th>
+              <th scope="col" class="pro-col">Lookout Pro<span>$2.99 a month or $19.99 a year</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">Police, fire and EMS scanner feeds</th><td><svg class="yes" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sr-only">Included</span></td><td class="pro-col"><svg class="yes" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sr-only">Included</span></td></tr>
+            <tr><th scope="row">Crash, police and hazard reports</th><td><svg class="yes" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sr-only">Included</span></td><td class="pro-col"><svg class="yes" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sr-only">Included</span></td></tr>
+            <tr><th scope="row">Planes overhead and earthquakes</th><td><svg class="yes" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sr-only">Included</span></td><td class="pro-col"><svg class="yes" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sr-only">Included</span></td></tr>
+            <tr><th scope="row">Local news and public-safety tools</th><td><svg class="yes" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sr-only">Included</span></td><td class="pro-col"><svg class="yes" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sr-only">Included</span></td></tr>
+            <tr><th scope="row">Current conditions, 12-hour and 7-day forecast</th><td><svg class="yes" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sr-only">Included</span></td><td class="pro-col"><svg class="yes" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sr-only">Included</span></td></tr>
+            <tr><th scope="row">Weather Service alerts for your spot</th><td><svg class="yes" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sr-only">Included</span></td><td class="pro-col"><svg class="yes" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sr-only">Included</span></td></tr>
+            <tr><th scope="row">Warning areas drawn on the map</th><td><svg class="yes" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sr-only">Included</span></td><td class="pro-col"><svg class="yes" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sr-only">Included</span></td></tr>
+            <tr><th scope="row">Map with live traffic</th><td><svg class="yes" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sr-only">Included</span></td><td class="pro-col"><svg class="yes" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sr-only">Included</span></td></tr>
+            <tr><th scope="row">Public cameras near you</th><td>Nearest 3</td><td class="pro-col">Up to 50</td></tr>
+            <tr><th scope="row">Saved places</th><td>1</td><td class="pro-col">20</td></tr>
+            <tr><th scope="row">Live NEXRAD radar</th><td><span class="no" aria-hidden="true">&ndash;</span><span class="sr-only">Not included</span></td><td class="pro-col"><svg class="yes" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sr-only">Included</span></td></tr>
+            <tr><th scope="row">Drive mode</th><td><span class="no" aria-hidden="true">&ndash;</span><span class="sr-only">Not included</span></td><td class="pro-col"><svg class="yes" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sr-only">Included</span></td></tr>
+            <tr><th scope="row">Warning alerts while the app is closed</th><td><span class="no" aria-hidden="true">&ndash;</span><span class="sr-only">Not included</span></td><td class="pro-col"><svg class="yes" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sr-only">Included</span></td></tr>
+            <tr><th scope="row">Today's storm risk from the Storm Prediction Center</th><td><span class="no" aria-hidden="true">&ndash;</span><span class="sr-only">Not included</span></td><td class="pro-col"><svg class="yes" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sr-only">Included</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pro-foot">
+        <a class="store" href="/#pro" aria-disabled="true">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.4 12.6c0-2.4 2-3.6 2.1-3.7-1.2-1.7-3-1.9-3.6-2-1.5-.2-3 .9-3.8.9-.8 0-2-.9-3.3-.9-1.7 0-3.3 1-4.2 2.5-1.8 3.1-.5 7.7 1.3 10.2.9 1.2 1.9 2.6 3.2 2.6 1.3-.1 1.8-.8 3.3-.8 1.6 0 2 .8 3.3.8 1.4 0 2.3-1.3 3.1-2.5 1-1.4 1.4-2.8 1.4-2.9 0 0-2.8-1.1-2.8-4.2zM13.9 5.2c.7-.8 1.2-2 1-3.2-1 .1-2.2.7-3 1.5-.6.7-1.2 1.9-1 3.1 1.1.1 2.3-.6 3-1.4z"/></svg>
+          Coming soon to the App Store
+        </a>
+        <p class="fine">Lookout Pro starts with a free week. After that it renews automatically unless you cancel at least 24 hours before the period ends. You can manage it any time in your iPhone's Settings.</p>
       </div>
     </section>
 
@@ -116,6 +232,57 @@
         <div>
           <p>Lookout is a helper, not an official warning system. Keep Emergency Alerts turned on in your iPhone's settings and follow your local officials.</p>
           <p>Drive mode is built to be read at a glance. Mount your phone, and never type while driving.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="faq" aria-labelledby="faq-title">
+      <div class="faq-grid">
+        <div>
+          <h2 id="faq-title">Questions, answered</h2>
+          <p class="faq-more">Something else? <a href="/support">Visit support</a> or email <a href="mailto:hello@getlookoutapp.com">hello@getlookoutapp.com</a>.</p>
+        </div>
+        <div class="faq">
+          <details>
+            <summary>Is Lookout free?</summary>
+            <p>Yes. Scanner feeds, traffic reports, local news, planes and earthquakes, weather alerts for your spot, the map with traffic, the 3 nearest cameras and 1 saved place are free, with no account and no ads. Lookout Pro adds radar, Drive mode, background alerts, more cameras and places, and the daily storm risk for $2.99 a month or $19.99 a year, after a free week.</p>
+          </details>
+          <details>
+            <summary>Can I listen to police and fire scanners?</summary>
+            <p>Yes. The Scanner tab opens the live police, fire and EMS feeds for your state and county on Broadcastify, and recent dispatch calls you can replay on OpenMHz. Feeds are run by volunteers, so some counties don't have one.</p>
+          </details>
+          <details>
+            <summary>Where does the information come from?</summary>
+            <p>Forecasts and alerts come straight from the National Weather Service, and radar from NOAA's NEXRAD network via the Iowa Environmental Mesonet. Scanner audio is on Broadcastify and OpenMHz, driver reports on Waze, planes from adsb.lol, earthquakes from the U.S. Geological Survey, headlines from the GDELT Project, webcams from windy.com, and maps and traffic from Apple.</p>
+          </details>
+          <details>
+            <summary>Does it work outside Georgia?</summary>
+            <p>Yes, anywhere in the United States. Lookout uses your own location, so it works the same in every state. Radar covers the lower 48, and camera and scanner coverage is best around cities and highways.</p>
+          </details>
+          <details>
+            <summary>Do I need an account?</summary>
+            <p>No. Allow location once and Lookout loads the weather for wherever you are. There's nothing to sign up for.</p>
+          </details>
+          <details>
+            <summary>What happens to my location?</summary>
+            <p>Your phone sends your coordinates straight to the public weather, camera and flight services so they can return data for your spot. We don't run a server that collects it, and there are no ads, analytics or tracking. Saved places stay on your iPhone. The <a href="/privacy">privacy policy</a> has the details.</p>
+          </details>
+          <details>
+            <summary>How do background alerts work?</summary>
+            <p>With Lookout Pro, iOS wakes Lookout from time to time, usually every 15 minutes or more, to check for new warnings at your last location and your saved places. New ones arrive as notifications. iOS decides the timing, so keep Emergency Alerts turned on too.</p>
+          </details>
+          <details>
+            <summary>Which cameras does Lookout show?</summary>
+            <p>Public webcams from windy.com within about 75 miles of you, closest first. The free version shows the nearest 3, and Lookout Pro shows up to 50.</p>
+          </details>
+          <details>
+            <summary>What iPhone do I need?</summary>
+            <p>Any iPhone running iOS 17 or later.</p>
+          </details>
+          <details>
+            <summary>How do I cancel Lookout Pro?</summary>
+            <p>Open Settings on your iPhone, tap your name, then Subscriptions, then Lookout. Cancel at least 24 hours before your renewal date and you won't be charged again.</p>
+          </details>
         </div>
       </div>
     </section>
@@ -129,10 +296,11 @@
       <nav aria-label="Footer">
         <a href="/support">Support</a>
         <a href="/privacy">Privacy policy</a>
+        <a href="/press">Press kit</a>
         <a href="https://www.apple.com/legal/internet-services/itunes/dev/stdeula/">Terms of use</a>
       </nav>
     </div>
-    <p>Forecasts and alerts from the National Weather Service. Radar from NOAA NEXRAD via the Iowa Environmental Mesonet. Storm risk from the NOAA Storm Prediction Center. Webcams provided by <a href="https://www.windy.com/webcams">windy.com</a>. Maps and traffic by Apple. Lookout is not affiliated with these services.</p>
+    <p>Forecasts and alerts from the National Weather Service. Radar from NOAA NEXRAD via the Iowa Environmental Mesonet. Storm risk from the NOAA Storm Prediction Center. Earthquakes from the U.S. Geological Survey. Planes from adsb.lol. Scanner audio on Broadcastify and OpenMHz. Driver reports on Waze. Headlines from the GDELT Project. Webcams provided by <a href="https://www.windy.com/webcams">windy.com</a>. Maps and traffic by Apple. Lookout is not affiliated with these services.</p>
     <p>&copy; 2026 Christopher Gates</p>
   </div>
 </footer>

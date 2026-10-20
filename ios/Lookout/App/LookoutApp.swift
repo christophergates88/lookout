@@ -57,8 +57,8 @@ struct MainTabs: View {
             CamerasView()
                 .tabItem { Label("Cams", systemImage: "video") }
                 .tag(2)
-            PlacesView()
-                .tabItem { Label("Places", systemImage: "mappin.and.ellipse") }
+            ScannerView()
+                .tabItem { Label("Scanner", systemImage: "antenna.radiowaves.left.and.right") }
                 .tag(3)
             SettingsView()
                 .tabItem { Label("More", systemImage: "ellipsis.circle") }

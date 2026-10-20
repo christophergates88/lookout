@@ -8,6 +8,7 @@ struct NowView: View {
     @State private var openCamera: Camera?
     @State private var showDrive = false
     @State private var showPaywall = false
+    @State private var web: WebLink?
 
     var body: some View {
         NavigationStack {
@@ -24,6 +25,7 @@ struct NowView: View {
                         riskCard
                         hourlyStrip
                         camerasSection
+                        newsSection
                         weekCard
                         credits
                     }
@@ -54,11 +56,35 @@ struct NowView: View {
             .sheet(item: $openAlert) { AlertDetailView(alert: $0) }
             .sheet(item: $openCamera) { CameraDetailView(camera: $0) }
             .sheet(isPresented: $showPaywall) { PaywallView() }
+            .sheet(item: $web) { SafariView(url: $0.url).ignoresSafeArea() }
             .fullScreenCover(isPresented: $showDrive) { DriveView() }
         }
     }
 
     // MARK: Sections
+
+    @ViewBuilder private var newsSection: some View {
+        if !model.news.isEmpty {
+            VStack(alignment: .leading, spacing: 12) {
+                SectionLabel(text: "Local news", trailing: model.area?.city)
+                ForEach(model.news.prefix(3)) { story in
+                    Button { web = WebLink(url: story.url) } label: { NewsRow(story: story) }
+                        .buttonStyle(.plain)
+                }
+                NavigationLink {
+                    NewsView()
+                } label: {
+                    HStack {
+                        Text("All local news").font(.subheadline.bold())
+                        Spacer()
+                        Image(systemName: "chevron.right").font(.caption.bold())
+                    }
+                    .foregroundStyle(Color.lkAmber)
+                }
+            }
+            .panel()
+        }
+    }
 
     private var header: some View {
         HStack(alignment: .firstTextBaseline) {

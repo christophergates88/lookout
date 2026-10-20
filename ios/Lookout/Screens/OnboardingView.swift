@@ -7,7 +7,7 @@ struct OnboardingView: View {
 
     private let pages: [(symbol: String, title: String, text: String)] = [
         ("dot.radiowaves.left.and.right", "Know what's around you",
-         "Weather, warnings, radar and live public cameras for exactly where you are, updated as you move."),
+         "Police and fire scanners, live cameras, traffic reports, warnings and local news for exactly where you are, updated as you move."),
         ("exclamationmark.triangle.fill", "Warnings the moment they matter",
          "National Weather Service alerts for your spot, with the warning area drawn on the map."),
         ("steeringwheel", "Built for the drive",

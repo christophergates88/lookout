@@ -37,6 +37,17 @@ struct SettingsView: View {
                 .listRowBackground(Color.lkPanel)
 
                 Section {
+                    NavigationLink {
+                        PlacesView()
+                    } label: {
+                        Label("Saved places", systemImage: "mappin.and.ellipse")
+                    }
+                } footer: {
+                    Text("Home, work, school or anywhere else you want to keep an eye on.")
+                }
+                .listRowBackground(Color.lkPanel)
+
+                Section {
                     Toggle(isOn: Binding(
                         get: { backgroundAlerts && store.isPro },
                         set: { on in setBackgroundAlerts(on) }
@@ -64,7 +75,7 @@ struct SettingsView: View {
                     Link("Terms of use", destination: AppConfig.termsURL)
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Data sources").font(.subheadline.bold())
-                        Text("Forecasts and alerts: National Weather Service. Radar: NOAA NEXRAD via Iowa Environmental Mesonet. Storm risk: NOAA Storm Prediction Center. Webcams provided by windy.com. Maps and traffic: Apple.")
+                        Text("Forecasts and alerts: National Weather Service. Radar: NOAA NEXRAD via Iowa Environmental Mesonet. Storm risk: NOAA Storm Prediction Center. Webcams provided by windy.com. Aircraft: adsb.lol (ODbL). Earthquakes: U.S. Geological Survey. Headlines: the GDELT Project. Scanner audio: Broadcastify and OpenMHz. Driver reports: Waze. Maps and traffic: Apple.")
                             .font(.caption).foregroundStyle(Color.lkMuted)
                     }
                     Text("Version \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0")")

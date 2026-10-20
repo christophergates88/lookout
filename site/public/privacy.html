@@ -7,9 +7,10 @@
 <meta name="description" content="How the Lookout iPhone app handles your location and data: no accounts, no ads, no tracking.">
 <meta name="theme-color" content="#0c1118">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/press/lookout-icon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Overpass:wght@400;600;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Overpass:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/style.css">
 </head>
 <body>
@@ -27,10 +28,10 @@
   <main class="doc">
 
   <h1>Lookout Privacy Policy</h1>
-  <p class="updated">Effective October 20, 2026. Covers the Lookout iPhone app.</p>
+  <p class="updated">Effective October 20, 2026. Covers the Lookout iPhone app and this website.</p>
 
   <h2>The short version</h2>
-  <p>Lookout uses your location to show the weather, warnings, radar and cameras where you are. It has no accounts, no ads, no analytics and no tracking. We don't run a server that receives your location, and we don't sell or share anything about you.</p>
+  <p>Lookout uses your location to show the weather, warnings, radar, cameras, planes, earthquakes, scanner links and local news for where you are. It has no accounts, no ads, no analytics and no tracking. We don't run a server that receives your location, and we don't sell or share anything about you.</p>
 
   <h2>Location</h2>
   <p>Lookout asks for your location only while you're using the app. To get data for your spot, the app sends map coordinates directly from your phone to these public data services:</p>
@@ -39,10 +40,16 @@
     <li><strong>Windy</strong> (api.windy.com): public webcams near you.</li>
     <li><strong>NOAA Storm Prediction Center</strong> (spc.noaa.gov): today's storm outlook (downloaded as a whole; your location isn't sent).</li>
     <li><strong>Iowa Environmental Mesonet</strong> (mesonet.agron.iastate.edu): radar map tiles for the area on screen.</li>
-    <li><strong>Apple Maps</strong>: the map, traffic and address search.</li>
+    <li><strong>Apple Maps</strong>: the map, traffic, address search and looking up your town and county.</li>
+    <li><strong>adsb.lol</strong> (api.adsb.lol): planes flying near you, when the Planes layer is on.</li>
+    <li><strong>U.S. Geological Survey</strong> (earthquake.usgs.gov): recent earthquakes near you.</li>
   </ul>
+  <p>For local news, Lookout sends the name of your town, county and state (not your coordinates) to the <strong>GDELT Project</strong> (api.gdeltproject.org), which returns recent stories that mention them.</p>
   <p>These services receive the request like any website visit (including your IP address) under their own privacy policies. The coordinates aren't linked to your name or Apple ID.</p>
   <p>Lookout saves your last known location on your phone so that, if you turn on background warning alerts, it can check for new warnings while the app is closed.</p>
+
+  <h2>Links to other websites</h2>
+  <p>The Scanner tab and news stories open other websites inside Lookout, such as Broadcastify, OpenMHz, Waze, Citizen, CrimeMapping, PowerOutage.us, InciWeb, Google News and news publishers. They open only when you tap them, and each site receives what any website visit would, under its own privacy policy. The Waze link includes your location so the map opens where you are.</p>
 
   <h2>Saved places</h2>
   <p>Places you save (for example home or work) are stored only on your iPhone. When Lookout checks them for weather or warnings, their coordinates are sent to the National Weather Service as described above.</p>
@@ -55,6 +62,10 @@
 
   <h2>Analytics and tracking</h2>
   <p>Lookout has no analytics, advertising or tracking.</p>
+
+  <h2>This website</h2>
+  <p>getlookoutapp.com has no cookies, ads or analytics. To show the page and its live radar map, your browser loads the typeface from Google Fonts, map code from unpkg and jsDelivr, radar images from the Iowa Environmental Mesonet, alerts from the National Weather Service and earthquakes from the U.S. Geological Survey. Those services see the request like any website visit, including your IP address.</p>
+  <p>If you choose "Show my area" on the radar map, your browser asks for your location and uses it only to move the map. It isn't sent to us.</p>
 
   <h2>Children</h2>
   <p>Lookout is not directed to children under 13 and does not knowingly collect information from them.</p>
@@ -73,6 +84,7 @@
       <nav aria-label="Footer">
         <a href="/support">Support</a>
         <a href="/privacy">Privacy policy</a>
+        <a href="/press">Press kit</a>
         <a href="https://www.apple.com/legal/internet-services/itunes/dev/stdeula/">Terms of use</a>
       </nav>
     </div>

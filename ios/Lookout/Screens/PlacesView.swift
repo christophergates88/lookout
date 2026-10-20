@@ -12,7 +12,6 @@ struct PlacesView: View {
     private var limit: Int { store.isPro ? AppConfig.proSavedPlaces : AppConfig.freeSavedPlaces }
 
     var body: some View {
-        NavigationStack {
             List {
                 if places.places.isEmpty {
                     Section {
@@ -42,7 +41,7 @@ struct PlacesView: View {
             }
             .scrollContentBackground(.hidden)
             .background(Color.lkGround)
-            .navigationTitle("Places")
+            .navigationTitle("Saved places")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
@@ -56,7 +55,6 @@ struct PlacesView: View {
             }
             .sheet(isPresented: $showAdd) { AddPlaceView() }
             .sheet(isPresented: $showPaywall) { PaywallView() }
-        }
     }
 }
 
