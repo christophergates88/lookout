@@ -1,0 +1,32 @@
+# macOS
+.DS_Store
+
+# Xcode user state (schemes, window layout, breakpoints) — personal, not shared
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+*.xccheckout
+
+# Build output
+build/
+DerivedData/
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Package.resolved
+
+# Local secrets, if any ever get added
+*.p8
+*.p12
+*.mobileprovision
+_to_delete/
+
+# Local helpers' output and the Worker's local state
+build.log
+deploy.log
+worker/.wrangler/
+worker/node_modules/
