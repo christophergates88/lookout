@@ -1,5 +1,6 @@
 import Foundation
 import CoreLocation
+import Observation
 
 /// Where the phone is. Uses "While Using the App" permission only.
 @MainActor

@@ -149,7 +149,8 @@ struct LookoutMap: UIViewRepresentable {
             if radar {
                 let tiles = MKTileOverlay(urlTemplate: AppConfig.radarTileTemplate + "?t=\(radarStamp)")
                 tiles.canReplaceMapContent = false
-                map.addOverlay(tiles, level: .aboveRoads)
+                // Under the warning areas, so they stay visible on top of the radar.
+                map.insertOverlay(tiles, at: 0, level: .aboveRoads)
                 c.radarOverlay = tiles
             }
         }

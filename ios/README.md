@@ -40,7 +40,8 @@ every camera, which the app does). There is no server.
 
 ## 3. Run it on your iPhone (10 minutes)
 
-1. Double-click **Lookout.xcodeproj**. Xcode opens.
+1. Double-click **Lookout.xcodeproj**. Xcode opens. If it shows a yellow **"Update to recommended settings"** notice,
+   ignore it (don't click Perform Changes). Those new settings change how the code is checked and can cause errors.
 2. In the left sidebar, click the blue **Lookout** icon at the top, then **Lookout** under TARGETS, then the
    **Signing & Capabilities** tab. **Team** should already show your developer account. If it says the bundle ID is
    unavailable, change `com.christophergates.lookout` to something unique like `com.christophergates.lookoutwx`, and

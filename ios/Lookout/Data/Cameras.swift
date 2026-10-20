@@ -69,7 +69,7 @@ enum Windy {
         guard isConfigured else { return [] }
         var comps = URLComponents(string: "https://api.windy.com/webcams/api/v3/webcams")!
         comps.queryItems = [
-            URLQueryItem(name: "nearby", value: String(format: "%.4f,%.4f,%d", c.latitude, c.longitude, AppConfig.cameraRadiusKm)),
+            URLQueryItem(name: "nearby", value: String(format: "%.4f,%.4f,%ld", c.latitude, c.longitude, AppConfig.cameraRadiusKm)),
             URLQueryItem(name: "limit", value: "50"),
             URLQueryItem(name: "include", value: "images,location,player,urls"),
             URLQueryItem(name: "lang", value: "en")

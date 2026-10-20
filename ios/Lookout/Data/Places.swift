@@ -1,5 +1,7 @@
 import Foundation
 import CoreLocation
+import Observation
+import SwiftUI // Array.move(fromOffsets:toOffset:) is a SwiftUI extension
 
 /// A place the user wants to watch (home, work, daycare, the lake house...).
 struct SavedPlace: Codable, Identifiable, Hashable, Sendable {

@@ -194,8 +194,13 @@ struct DriveView: View {
 
 /// Speaks over the car audio, ducking music.
 @MainActor
-final class AlertSpeaker {
+final class AlertSpeaker: NSObject, AVSpeechSynthesizerDelegate {
     private let synth = AVSpeechSynthesizer()
+
+    override init() {
+        super.init()
+        synth.delegate = self
+    }
 
     func say(_ text: String) {
         let session = AVAudioSession.sharedInstance()
@@ -209,5 +214,14 @@ final class AlertSpeaker {
     func stop() {
         synth.stopSpeaking(at: .immediate)
         try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+    }
+
+    /// Bring the music back up once the alert has been read.
+    nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
+        Task { @MainActor in
+            if !self.synth.isSpeaking {
+                try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+            }
+        }
     }
 }

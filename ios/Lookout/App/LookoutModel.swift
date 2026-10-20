@@ -1,5 +1,6 @@
 import Foundation
 import CoreLocation
+import Observation
 
 /// Everything Lookout shows for where you are right now. Reloads when you move or it gets stale.
 @MainActor

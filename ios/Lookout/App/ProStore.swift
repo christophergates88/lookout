@@ -1,5 +1,6 @@
 import Foundation
 import StoreKit
+import Observation
 
 /// Lookout Pro: auto-renewable subscription (monthly or yearly) using StoreKit 2. No server needed.
 @MainActor
