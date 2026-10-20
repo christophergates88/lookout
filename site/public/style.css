@@ -1,0 +1,145 @@
+:root {
+  --night: #0c1118;
+  --panel: #151d28;
+  --panel-2: #1d2734;
+  --amber: #f5b63f;
+  --amber-ink: #2a1c02;
+  --severe: #ff6464;
+  --text: #edf2f7;
+  --muted: #9aa9ba;
+  --line: #263243;
+  --measure: 34rem;
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; overflow-x: hidden; }
+body { overflow-x: hidden; }
+@supports (overflow: clip) { html, body { overflow-x: clip; } }
+
+body {
+  margin: 0;
+  background: var(--night);
+  color: var(--text);
+  font-family: "Overpass", system-ui, -apple-system, sans-serif;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+img { max-width: 100%; display: block; }
+
+a { color: var(--amber); text-underline-offset: 0.18em; }
+a:hover { color: #ffd27a; }
+
+:focus-visible { outline: 3px solid var(--amber); outline-offset: 3px; border-radius: 4px; }
+
+.wrap { max-width: 72rem; margin: 0 auto; padding: 0 1rem; }
+@media (min-width: 48rem) { .wrap { padding: 0 2rem; } }
+
+/* Header */
+.top { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1.25rem 0; }
+.brand { display: flex; align-items: center; gap: 0.6rem; color: var(--text); text-decoration: none; font-weight: 800; font-size: 1.25rem; letter-spacing: -0.01em; }
+.brand svg { width: 2.1rem; height: 2.1rem; }
+.top nav { display: flex; gap: 1.25rem; font-weight: 600; font-size: 0.95rem; }
+.top nav a { color: var(--muted); text-decoration: none; }
+.top nav a:hover { color: var(--text); }
+
+/* Store button */
+.store {
+  display: inline-flex; align-items: center; gap: 0.6rem;
+  background: var(--amber); color: var(--amber-ink);
+  font-weight: 800; text-decoration: none;
+  padding: 0.85rem 1.3rem; border-radius: 999px;
+}
+.store:hover { background: #ffc85c; color: var(--amber-ink); }
+.store svg { width: 1.15rem; height: 1.15rem; }
+.store[aria-disabled="true"] { background: var(--panel-2); color: var(--text); cursor: default; }
+
+/* Hero */
+.hero { display: grid; gap: 2.5rem; align-items: center; padding: 2rem 0 4rem; }
+@media (min-width: 56rem) { .hero { grid-template-columns: 1.05fr 0.95fr; padding: 3rem 0 6rem; } }
+
+.bulletin {
+  display: inline-flex; align-items: center; gap: 0.6rem;
+  border-left: 4px solid var(--amber);
+  background: rgba(245, 182, 63, 0.1);
+  padding: 0.5rem 0.9rem; border-radius: 0 0.5rem 0.5rem 0;
+  font-weight: 600; font-size: 0.95rem; color: #ffe2a6;
+  margin-bottom: 1.5rem;
+}
+
+.hero h1 {
+  font-weight: 900;
+  font-size: clamp(2.6rem, 7vw, 4.6rem);
+  line-height: 0.98;
+  letter-spacing: -0.03em;
+  margin: 0 0 1.25rem;
+  max-width: 12ch;
+}
+.hero .lede { color: var(--muted); font-size: 1.2rem; max-width: var(--measure); margin: 0 0 2rem; }
+.hero .fine { color: var(--muted); font-size: 0.9rem; margin: 1rem 0 0; }
+
+/* Radar behind the phone */
+.scope { position: relative; display: grid; place-items: center; padding: 2rem 0; }
+.scope .rings { position: absolute; inset: 50% auto auto 50%; width: min(42rem, 140%); aspect-ratio: 1; transform: translate(-50%, -50%); pointer-events: none; }
+.scope .rings circle { fill: none; stroke: var(--amber); }
+.scope .sweep { transform-origin: 50% 50%; animation: sweep 6s linear 1 both; }
+@keyframes sweep { from { transform: rotate(-40deg); opacity: 0.9; } to { transform: rotate(320deg); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .scope .sweep { animation: none; opacity: 0; } }
+
+.phone {
+  position: relative; width: min(19rem, 78vw);
+  border-radius: 2.6rem; padding: 0.55rem;
+  background: #05080c;
+  box-shadow: 0 0 0 1px #2c3a4d, 0 40px 80px -30px rgba(0, 0, 0, 0.8);
+}
+.phone img { border-radius: 2.1rem; width: 100%; height: auto; }
+
+/* Sections */
+section { padding: 4rem 0; border-top: 1px solid var(--line); }
+section h2 { font-weight: 800; font-size: clamp(1.8rem, 4vw, 2.6rem); line-height: 1.1; letter-spacing: -0.02em; margin: 0 0 0.75rem; max-width: 20ch; }
+section .intro { color: var(--muted); max-width: var(--measure); margin: 0 0 2.5rem; }
+
+/* Screens strip */
+.screens { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(13rem, 1fr); gap: 1.5rem; overflow-x: auto; padding-bottom: 1rem; scroll-snap-type: x mandatory; }
+.screens figure { margin: 0; scroll-snap-align: start; }
+.screens img { border-radius: 1.6rem; border: 1px solid var(--line); width: 100%; height: auto; }
+.screens figcaption { margin-top: 1rem; }
+.screens figcaption strong { display: block; font-size: 1.1rem; }
+.screens figcaption span { color: var(--muted); font-size: 0.95rem; }
+
+/* Free vs Pro */
+.plans { display: grid; gap: 1.5rem; }
+@media (min-width: 48rem) { .plans { grid-template-columns: 1fr 1fr; } }
+.plan { border: 1px solid var(--line); border-radius: 1.25rem; padding: 1.75rem; background: var(--panel); }
+.plan.pro { border-color: var(--amber); }
+.plan h3 { margin: 0; font-size: 1.5rem; font-weight: 800; }
+.plan .price { color: var(--muted); margin: 0.25rem 0 1.25rem; }
+.plan.pro .price { color: #ffe2a6; }
+.plan ul { list-style: none; margin: 0; padding: 0; }
+.plan li { padding: 0.55rem 0; border-top: 1px solid var(--line); }
+.plan li:first-child { border-top: 0; }
+
+/* Safety */
+.note { display: grid; gap: 1rem; align-items: start; }
+@media (min-width: 48rem) { .note { grid-template-columns: 1fr 1.4fr; gap: 3rem; } }
+.note p { color: var(--muted); max-width: var(--measure); margin: 0 0 1rem; }
+
+/* Footer */
+footer { border-top: 1px solid var(--line); padding: 2.5rem 0 3rem; color: var(--muted); font-size: 0.95rem; }
+footer .row { display: flex; flex-wrap: wrap; gap: 1rem 2rem; justify-content: space-between; }
+footer nav { display: flex; flex-wrap: wrap; gap: 1rem 1.5rem; }
+footer p { margin: 1.25rem 0 0; max-width: 46rem; }
+
+/* Text pages */
+.doc { max-width: 42rem; padding: 2rem 0 4rem; }
+.doc h1 { font-weight: 900; font-size: clamp(2.2rem, 6vw, 3.2rem); line-height: 1.05; letter-spacing: -0.02em; margin: 0 0 0.5rem; }
+.doc .updated { color: var(--muted); margin: 0 0 2rem; }
+.doc h2 { font-size: 1.3rem; font-weight: 800; margin: 2.25rem 0 0.5rem; color: var(--text); }
+.doc p, .doc li { color: #c9d4df; }
+.doc ul { padding-left: 1.2rem; }
+.doc dt { font-weight: 800; margin-top: 1.5rem; }
+.doc dd { margin: 0.25rem 0 0; color: #c9d4df; }
+.contact { background: var(--panel); border: 1px solid var(--line); border-radius: 1rem; padding: 1.25rem 1.5rem; margin: 1.5rem 0; }
+.contact p { margin: 0; }
