@@ -83,17 +83,28 @@ final class LookoutModel {
         Task { await refreshNews() }
     }
 
+    private var lastNewsRequest: Date?
+
     /// Local headlines for the current town and county.
     func refreshNews() async {
         guard let area, !newsLoading else { return }
         newsLoading = true
         defer { newsLoading = false }
-        do {
-            news = try await LocalNews.stories(for: area)
-            newsFailed = false
-        } catch {
-            // Keep any stories we already have; the screens offer Google News links either way.
-            newsFailed = news.isEmpty
+        for attemptNumber in 0..<2 {
+            // GDELT answers one request every 5 seconds per device, so space them out and retry once.
+            if let last = lastNewsRequest {
+                let wait = 6 - Date().timeIntervalSince(last)
+                if wait > 0 { try? await Task.sleep(for: .seconds(wait)) }
+            }
+            lastNewsRequest = Date()
+            do {
+                news = try await LocalNews.stories(for: area)
+                newsFailed = false
+                return
+            } catch {
+                // Keep any stories we already have; the screens offer Google News links either way.
+                if attemptNumber == 1 { newsFailed = news.isEmpty }
+            }
         }
     }
 

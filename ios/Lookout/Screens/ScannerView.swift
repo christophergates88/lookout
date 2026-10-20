@@ -68,7 +68,8 @@ struct ScannerView: View {
                     }
                     if let name = area?.stateName {
                         row("bolt.fill", "Power outages", "By county across \(name)",
-                            "https://poweroutage.us/area/state/" + name.lowercased().replacingOccurrences(of: " ", with: "-"))
+                            // PowerOutage.us spells multi-word states with a space: /area/state/new%20jersey
+                            "https://poweroutage.us/area/state/" + (name.lowercased().addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""))
                     }
                     row("flame.fill", "Wildfires", "Active incidents from InciWeb", "https://inciweb.wildfire.gov/")
                     if let county = area?.countyOrPlace, !county.isEmpty {

@@ -43,7 +43,7 @@ struct NewsView: View {
     private var emptyText: String {
         if model.newsLoading { return "Looking for local stories…" }
         if model.area == nil { return "Finding your town…" }
-        if model.newsFailed { return "The headline service is busy right now. Pull down to try again, or use the links below." }
+        if model.newsFailed { return "Headlines didn't load just now. The links below always have the latest news for your area, or pull down to try again." }
         return "No local stories in the last 3 days. The links below search more widely."
     }
 

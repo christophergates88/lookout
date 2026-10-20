@@ -76,7 +76,7 @@ enum USStates {
         "OR": "https://tripcheck.com", "PA": "https://511pa.com", "RI": "https://www.dot.ri.gov/travel",
         "SC": "https://511sc.org", "SD": "https://sd511.org", "TN": "https://smartway.tn.gov",
         "TX": "https://drivetexas.org", "UT": "https://udottraffic.utah.gov", "VT": "https://newengland511.org",
-        "VA": "https://511.vdot.virginia.gov", "WA": "https://wsdot.com/travel/real-time/map",
+        "VA": "https://511.vdot.virginia.gov", "WA": "https://wsdot.wa.gov/travel/real-time/map",
         "WV": "https://wv511.org", "WI": "https://511wi.gov", "WY": "https://map.wyoroad.info",
         "DC": "https://ddot.dc.gov"
     ]
