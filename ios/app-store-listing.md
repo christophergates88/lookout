@@ -33,13 +33,13 @@ Lookout Pro is $2.99 a month or $19.99 a year after a 1-week free trial. Payment
 Lookout is a helper, not an official warning system. Keep Emergency Alerts turned on and follow your local officials. Forecasts and United States coverage come from the National Weather Service. Webcams provided by windy.com.
 
 Terms of Use: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
-Privacy Policy: https://christophergates88.github.io/lookout/privacy.html
+Privacy Policy: https://getlookoutapp.com/privacy
 
 **Keywords (100 max):**
 weather,alerts,radar,storm,tornado,warning,traffic,camera,webcam,drive,road,NWS,severe,forecast
 
-**Support URL:** https://christophergates88.github.io/lookout/support.html
-**Privacy Policy URL:** https://christophergates88.github.io/lookout/privacy.html
+**Support URL:** https://getlookoutapp.com/support
+**Privacy Policy URL:** https://getlookoutapp.com/privacy
 **Age rating:** 4+
 **Copyright:** 2026 Christopher Gates
 

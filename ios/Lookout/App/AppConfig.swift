@@ -20,7 +20,7 @@ enum AppConfig {
     // MARK: Data sources
 
     /// The National Weather Service asks every app to identify itself with a contact.
-    static let nwsUserAgent = "LookoutApp/1.0 (christophergates88.github.io/lookout/support.html)"
+    static let nwsUserAgent = "LookoutApp/1.0 (getlookoutapp.com, hello@getlookoutapp.com)"
 
     /// Windy Webcams API key for the app (free tier). Make a NEW key just for the app at
     /// api.windy.com/keys ("Webcams API") and paste it between the quotes. Leave it empty and the
@@ -42,9 +42,9 @@ enum AppConfig {
 
     // MARK: Links
 
-    static let supportURL = URL(string: "https://christophergates88.github.io/lookout/support.html")!
+    static let supportURL = URL(string: "https://getlookoutapp.com/support")!
     /// Apple requires this to be a working public page before review.
-    static let privacyURL = URL(string: "https://christophergates88.github.io/lookout/privacy.html")!
+    static let privacyURL = URL(string: "https://getlookoutapp.com/privacy")!
     /// Apple's standard end-user license agreement, shown on the paywall.
     static let termsURL = URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!
 }
