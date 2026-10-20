@@ -235,10 +235,10 @@
       }).catch(function () {});
     };
 
-    // Earthquakes of magnitude 1 or more in the past day (U.S. Geological Survey).
+    // Earthquakes of magnitude 2.5 or more in the past day (U.S. Geological Survey).
     var quakeLayer = L.layerGroup().addTo(map);
     var loadQuakes = function () {
-      return fetch("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/1.0_day.geojson").then(function (r) { return r.json(); }).then(function (j) {
+      return fetch("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson").then(function (r) { return r.json(); }).then(function (j) {
         quakeLayer.clearLayers();
         var n = 0;
         (j.features || []).forEach(function (f) {
@@ -263,7 +263,7 @@
             box.appendChild(when);
           }
           L.circleMarker([c[1], c[0]], {
-            pane: "alerts", radius: 3 + Math.max(0, p.mag) * 1.8,
+            pane: "alerts", radius: 2 + Math.max(0, p.mag) * 1.5,
             color: "#ffffff", weight: 1, opacity: 0.8,
             fillColor: strong ? "#ff6161" : "#f59a33", fillOpacity: 0.75
           }).bindPopup(box, { maxWidth: 260 }).addTo(quakeLayer);
