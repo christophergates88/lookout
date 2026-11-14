@@ -206,6 +206,7 @@ input::placeholder { color: var(--ink-soft); }
   <div class="controls">
     <button type="button" id="listenBtn" disabled>Start listening</button>
     <button type="button" id="readBtn" disabled>Read aloud</button>
+    <button type="button" id="undoBtn" disabled>Remove last line</button>
     <button type="button" id="clearBtn">Clear</button>
   </div>
 
@@ -309,7 +310,17 @@ input::placeholder { color: var(--ink-soft); }
     speaking = on;
     updateReadBtn();
   }
+  var undoBtn = document.getElementById('undoBtn');
+  undoBtn.addEventListener('click', function () {
+    var all = wordsEl.querySelectorAll('.phrase');
+    if (!all.length) return;
+    all[all.length - 1].remove();
+    phrases.pop();
+    if (!phrases.length && partialEl.hidden) hintEl.hidden = false;
+    updateReadBtn();
+  });
   function updateReadBtn() {
+    undoBtn.disabled = phrases.length === 0;
     if (!voice) { readBtn.hidden = true; return; }
     readBtn.hidden = false;
     readBtn.textContent = speaking ? 'Stop reading' : 'Read aloud';
