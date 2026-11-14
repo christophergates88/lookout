@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grandpa's Words</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: one screen. Slim top bar, a large reading panel that fills the middle, big thumb-sized controls pinned at the bottom. */
+:root {
+  --paper: #f3f6f9;
+  --panel: #ffffff;
+  --ink: #0e2233;
+  --ink-soft: #4a6072;
+  --line: #c9d5df;
+  --accent: #0b5cad;
+  --accent-ink: #ffffff;
+  --live: #b3261e;
+  --font-display: "Atkinson Hyperlegible", Verdana, "Segoe UI", sans-serif;
+  --font-body: "Atkinson Hyperlegible", Verdana, "Segoe UI", sans-serif;
+  --read-size: 36px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0b1620;
+    --panel: #13222f;
+    --ink: #f2f6f9;
+    --ink-soft: #a9bccb;
+    --line: #2e4456;
+    --accent: #7cc0ff;
+    --accent-ink: #06203a;
+    --live: #ff8a80;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0b1620;
+  --panel: #13222f;
+  --ink: #f2f6f9;
+  --ink-soft: #a9bccb;
+  --line: #2e4456;
+  --accent: #7cc0ff;
+  --accent-ink: #06203a;
+  --live: #ff8a80;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 18px;
+  line-height: 1.4;
+}
+.app {
+  height: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 12px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+h1 {
+  font-family: var(--font-display);
+  font-size: 22px;
+  margin: 0;
+  text-wrap: balance;
+}
+.sizes { display: flex; align-items: center; gap: 8px; }
+.sizes span { color: var(--ink-soft); font-size: 16px; }
+button {
+  font: inherit;
+  font-weight: 700;
+  color: var(--ink);
+  background: var(--panel);
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  min-height: 52px;
+  padding: 8px 18px;
+  cursor: pointer;
+}
+button:focus-visible, input:focus-visible, .phrase:focus-visible {
+  outline: 4px solid var(--accent);
+  outline-offset: 2px;
+}
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+.sizes button { min-width: 56px; padding: 8px 10px; }
+.status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 28px;
+  color: var(--ink-soft);
+  font-size: 18px;
+}
+.dot {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--line);
+  flex: none;
+}
+.listening .dot { background: var(--live); animation: pulse 1.2s ease-in-out infinite; }
+.listening .status { color: var(--live); font-weight: 700; }
+@keyframes pulse { 50% { transform: scale(1.5); opacity: 0.5; } }
+@media (prefers-reduced-motion: reduce) { .listening .dot { animation: none; } }
+.words {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  background: var(--panel);
+  border: 2px solid var(--line);
+  border-radius: 16px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  font-size: var(--read-size);
+  line-height: 1.25;
+}
+.listening .words { border-color: var(--live); }
+.hint { color: var(--ink-soft); margin: 0; }
+.phrase {
+  all: unset;
+  display: block;
+  cursor: pointer;
+  color: var(--ink-soft);
+  overflow-wrap: anywhere;
+  border-radius: 8px;
+}
+.phrase:last-of-type { color: var(--ink); font-weight: 700; }
+.partial { margin: 0; color: var(--ink-soft); font-style: italic; overflow-wrap: anywhere; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px; }
+.controls button { flex: 1 1 140px; min-height: 64px; font-size: 20px; }
+#listenBtn {
+  flex: 2 1 240px;
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+  font-size: 24px;
+}
+.listening #listenBtn { background: var(--live); border-color: var(--live); }
+form { display: flex; gap: 10px; }
+input[type="text"] {
+  flex: 1 1 auto;
+  min-width: 0;
+  font: inherit;
+  font-size: 20px;
+  color: var(--ink);
+  background: var(--panel);
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  min-height: 52px;
+  padding: 8px 14px;
+}
+input::placeholder { color: var(--ink-soft); }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <div class="top">
+    <h1>Grandpa's Words</h1>
+    <div class="sizes">
+      <span>Text size</span>
+      <button type="button" id="smaller" aria-label="Make text smaller">A−</button>
+      <button type="button" id="bigger" aria-label="Make text bigger">A+</button>
+    </div>
+  </div>
+
+  <div class="status" role="status" aria-live="polite">
+    <span class="dot" aria-hidden="true"></span>
+    <span id="statusText">Getting ready…</span>
+  </div>
+
+  <div class="words" id="words" aria-live="polite">
+    <p class="hint" id="hint">His words will show here in large print. Press Start listening and hold the device close to him.</p>
+    <p class="partial" id="partial" hidden></p>
+  </div>
+
+  <div class="controls">
+    <button type="button" id="listenBtn" disabled>Start listening</button>
+    <button type="button" id="readBtn" disabled>Read aloud</button>
+    <button type="button" id="clearBtn">Clear</button>
+  </div>
+
+  <form id="typeForm" autocomplete="off">
+    <input type="text" id="typed" placeholder="Or type words here" aria-label="Type words to show and read aloud">
+    <button type="submit" id="addBtn">Add</button>
+  </form>
+</div>
+
+<script>
+(function () {
+  var app = document.getElementById('app');
+  var wordsEl = document.getElementById('words');
+  var hintEl = document.getElementById('hint');
+  var partialEl = document.getElementById('partial');
+  var statusText = document.getElementById('statusText');
+  var listenBtn = document.getElementById('listenBtn');
+  var readBtn = document.getElementById('readBtn');
+
+  var phrases = [];
+  var listening = false;
+  var speaking = false;
+  var ear = null;    // listening engine: {kind, start(), stop()}
+  var voice = null;  // speaking engine: {speak(text), stop()}
+  var wakeLock = null;
+
+  /* ---------- text size ---------- */
+  var sizes = [22, 28, 36, 46, 58, 72];
+  var sizeIdx = window.innerWidth < 500 ? 1 : 2;
+  try {
+    var saved = parseInt(localStorage.getItem('gw-size'), 10);
+    if (saved >= 0 && saved < sizes.length) sizeIdx = saved;
+  } catch (e) {}
+  function applySize() {
+    document.documentElement.style.setProperty('--read-size', sizes[sizeIdx] + 'px');
+    try { localStorage.setItem('gw-size', String(sizeIdx)); } catch (e) {}
+  }
+  applySize();
+  document.getElementById('smaller').addEventListener('click', function () {
+    if (sizeIdx > 0) { sizeIdx--; applySize(); }
+  });
+  document.getElementById('bigger').addEventListener('click', function () {
+    if (sizeIdx < sizes.length - 1) { sizeIdx++; applySize(); }
+  });
+
+  /* ---------- transcript ---------- */
+  function scrollDown() { wordsEl.scrollTop = wordsEl.scrollHeight; }
+  function tidy(text) {
+    text = String(text || '').replace(/\s+/g, ' ').trim();
+    if (!text) return '';
+    return text.charAt(0).toUpperCase() + text.slice(1);
+  }
+  function addPhrase(text) {
+    text = tidy(text);
+    if (!text) return;
+    phrases.push(text);
+    hintEl.hidden = true;
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'phrase';
+    b.textContent = text;
+    b.setAttribute('aria-label', 'Read aloud: ' + text);
+    b.addEventListener('click', function () { readAloud(text); });
+    wordsEl.insertBefore(b, partialEl);
+    setPartial('');
+    updateReadBtn();
+    scrollDown();
+  }
+  function setPartial(text) {
+    text = tidy(text);
+    partialEl.textContent = text;
+    partialEl.hidden = !text;
+    if (text) { hintEl.hidden = true; scrollDown(); }
+  }
+  document.getElementById('clearBtn').addEventListener('click', function () {
+    phrases = [];
+    var old = wordsEl.querySelectorAll('.phrase');
+    for (var i = 0; i < old.length; i++) old[i].remove();
+    setPartial('');
+    hintEl.hidden = false;
+    updateReadBtn();
+  });
+  document.getElementById('typeForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var input = document.getElementById('typed');
+    addPhrase(input.value);
+    input.value = '';
+  });
+
+  /* ---------- state ---------- */
+  function setStatus(text) { statusText.textContent = text; }
+  function setListening(on, note) {
+    listening = on;
+    app.classList.toggle('listening', on);
+    listenBtn.textContent = on ? 'Stop listening' : 'Start listening';
+    if (on) setStatus('Listening…');
+    else { setPartial(''); setStatus(note || 'Not listening. Press Start listening.'); }
+    keepAwake(on);
+  }
+  function setSpeaking(on) {
+    speaking = on;
+    updateReadBtn();
+  }
+  function updateReadBtn() {
+    if (!voice) { readBtn.hidden = true; return; }
+    readBtn.hidden = false;
+    readBtn.textContent = speaking ? 'Stop reading' : 'Read aloud';
+    readBtn.disabled = !speaking && phrases.length === 0;
+  }
+  function keepAwake(on) {
+    try {
+      if (on && navigator.wakeLock && !wakeLock) {
+        navigator.wakeLock.request('screen').then(function (l) { wakeLock = l; }).catch(function () {});
+      } else if (!on && wakeLock) {
+        wakeLock.release().catch(function () {});
+        wakeLock = null;
+      }
+    } catch (e) {}
+  }
+  function codeOf(err) { return (err && (err.code || err.error || err.message)) || String(err); }
+
+  /* ---------- listening ---------- */
+  listenBtn.addEventListener('click', function () {
+    if (!ear) return;
+    if (listening) { ear.stop(); return; }
+    if (speaking && voice) voice.stop();
+    ear.start(); // called straight from the click
+  });
+
+  function claudeEar(d) {
+    d.onPartial(function (m) { setPartial(m && m.text); });
+    d.onFinal(function (m) { addPhrase(m && m.text); });
+    d.onState(function (m) {
+      var on = m && m.state === 'listening';
+      var note = '';
+      if (!on && m && m.reason === 'hidden') note = 'Stopped because the page was hidden. Press Start listening.';
+      setListening(on, note);
+    });
+    return {
+      kind: 'claude',
+      start: function () {
+        d.start().catch(function (err) {
+          var c = codeOf(err);
+          if (c === 'not_granted') setListening(false, 'Microphone was not allowed. You can still type below.');
+          else setListening(false, 'Could not start listening. Press Start listening to try again.');
+        });
+      },
+      stop: function () { return d.stop().catch(function () {}); }
+    };
+  }
+
+  function nativeEar(R) {
+    // Each run hears one phrase, then restarts. The iPhone often never marks a
+    // phrase as finished, so a short silence ends the run and keeps the words.
+    var rec = null, want = false, pending = '', quiet = null;
+    function keepPending() {
+      clearTimeout(quiet);
+      if (pending) { var p = pending; pending = ''; addPhrase(p); }
+    }
+    return {
+      kind: 'native',
+      start: function () {
+        want = true;
+        pending = '';
+        rec = new R();
+        rec.continuous = false;
+        rec.interimResults = true;
+        rec.lang = 'en-US';
+        rec.onstart = function () { if (!listening) setListening(true); };
+        rec.onresult = function (e) {
+          var interim = '', done = '';
+          for (var i = 0; i < e.results.length; i++) {
+            var r = e.results[i];
+            if (r.isFinal) done += r[0].transcript + ' ';
+            else interim += r[0].transcript;
+          }
+          clearTimeout(quiet);
+          if (done && !interim) {
+            pending = '';
+            addPhrase(done);
+            return;
+          }
+          pending = (done + interim).trim();
+          setPartial(pending);
+          quiet = setTimeout(function () { try { rec.stop(); } catch (err) {} }, 1800);
+        };
+        rec.onerror = function (e) {
+          if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+            want = false;
+            setListening(false, 'The microphone is blocked here. Allow the microphone, or type below.');
+          } else if (e.error === 'audio-capture') {
+            want = false;
+            setListening(false, 'No microphone was found.');
+          }
+        };
+        rec.onend = function () {
+          keepPending();
+          if (want) {
+            try { rec.start(); return; } catch (err) { want = false; }
+          }
+          if (listening) setListening(false);
+        };
+        try { rec.start(); } catch (err) {
+          want = false;
+          setListening(false, 'Could not start listening. Press Start listening to try again.');
+        }
+      },
+      stop: function () {
+        want = false;
+        clearTimeout(quiet);
+        try { rec && rec.stop(); } catch (e) {}
+        return Promise.resolve();
+      }
+    };
+  }
+
+  /* ---------- reading aloud ---------- */
+  readBtn.addEventListener('click', function () {
+    if (speaking) { voice.stop(); return; }
+    if (phrases.length) readAloud(phrases[phrases.length - 1]);
+  });
+
+  async function readAloud(text) {
+    if (!voice || !text) return;
+    if (listening && ear) {
+      var p = ear.stop();
+      if (ear.kind === 'claude') { try { await p; } catch (e) {} }
+    }
+    voice.speak(text);
+  }
+
+  function claudeVoice(t) {
+    t.onState(function (m) { setSpeaking(!!m && m.state === 'speaking'); });
+    return {
+      speak: function (text) {
+        t.speak(text.slice(0, 2000), { rate: 0.9, language: 'en' }).catch(function (err) {
+          setSpeaking(false);
+          var c = codeOf(err);
+          if (c === 'not_granted') { voice = null; updateReadBtn(); }
+          else if (c === 'busy') setStatus('Stop listening first, then press Read aloud.');
+          else if (c === 'rate_limited') setStatus('Please wait a moment, then press Read aloud again.');
+        });
+      },
+      stop: function () { try { t.stop(); } catch (e) {} }
+    };
+  }
+
+  function nativeVoice() {
+    var synth = window.speechSynthesis;
+    return {
+      speak: function (text) {
+        try {
+          synth.cancel();
+          var u = new SpeechSynthesisUtterance(text);
+          u.rate = 0.9;
+          u.lang = 'en-US';
+          u.onend = u.onerror = function () { setSpeaking(false); };
+          setSpeaking(true);
+          synth.speak(u);
+        } catch (e) { setSpeaking(false); }
+      },
+      stop: function () { try { synth.cancel(); } catch (e) {} setSpeaking(false); }
+    };
+  }
+
+  /* ---------- start up: pick what this view can do ---------- */
+  function findClaude() {
+    return new Promise(function (resolve) {
+      var framed = true;
+      try { framed = window.self !== window.top; } catch (e) {}
+      var tries = framed ? 15 : 0;
+      (function look() {
+        if (window.claude && typeof window.claude.use === 'function') return resolve(window.claude);
+        if (tries-- <= 0) return resolve(null);
+        setTimeout(look, 100);
+      })();
+    });
+  }
+
+  async function boot() {
+    var c = await findClaude();
+    var d = null, t = null;
+    if (c) {
+      try {
+        var got = await Promise.all([
+          c.use('dictation').catch(function () { return null; }),
+          c.use('tts').catch(function () { return null; })
+        ]);
+        d = got[0]; t = got[1];
+      } catch (e) {}
+    }
+
+    if (t) voice = claudeVoice(t);
+    else if (window.speechSynthesis && window.SpeechSynthesisUtterance) voice = nativeVoice();
+    updateReadBtn();
+
+    var R = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (d) ear = claudeEar(d);
+    else if (R) ear = nativeEar(R);
+
+    if (ear) {
+      listenBtn.disabled = false;
+      setStatus('Ready. Press Start listening.');
+    } else {
+      setStatus('Listening does not work in this app or browser. Open this page in Safari or Chrome. You can still type below.');
+    }
+  }
+  boot();
+})();
+</script>
+</body>
+</html>
