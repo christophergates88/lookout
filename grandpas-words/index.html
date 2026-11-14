@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
 <style>
-/* Layout idea: one screen. Slim top bar, a large reading panel that fills the middle, big thumb-sized controls pinned at the bottom. */
+/* Layout idea: one screen. Slim top bar with settings tucked away, a large reading panel that fills the middle, big thumb-sized controls pinned at the bottom. */
 :root {
   --paper: #f3f6f9;
   --panel: #ffffff;
@@ -18,6 +18,7 @@
   --accent: #0b5cad;
   --accent-ink: #ffffff;
   --live: #b3261e;
+  --s1: #0b5cad; --s2: #a03a00; --s3: #1b7a3d; --s4: #7a2fa0; --s5: #9a1f4f; --s6: #5a5f00;
   --font-display: "Atkinson Hyperlegible", Verdana, "Segoe UI", sans-serif;
   --font-body: "Atkinson Hyperlegible", Verdana, "Segoe UI", sans-serif;
   --read-size: 36px;
@@ -33,6 +34,7 @@
     --accent: #7cc0ff;
     --accent-ink: #06203a;
     --live: #ff8a80;
+    --s1: #7cc0ff; --s2: #ffb074; --s3: #7fdb9c; --s4: #d7a6f5; --s5: #ff9cc0; --s6: #d8dc6a;
     color-scheme: dark;
   }
 }
@@ -45,6 +47,7 @@
   --accent: #7cc0ff;
   --accent-ink: #06203a;
   --live: #ff8a80;
+  --s1: #7cc0ff; --s2: #ffb074; --s3: #7fdb9c; --s4: #d7a6f5; --s5: #ff9cc0; --s6: #d8dc6a;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
@@ -57,71 +60,109 @@ body {
   line-height: 1.4;
 }
 .app {
+  min-height: 100%;
   height: 100%;
   max-width: 900px;
   margin: 0 auto;
-  padding: 12px 16px 16px;
+  padding: 10px 16px 14px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
-.top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-h1 {
-  font-family: var(--font-display);
-  font-size: 22px;
-  margin: 0;
-  text-wrap: balance;
-}
-.sizes { display: flex; align-items: center; gap: 8px; }
-.sizes span { color: var(--ink-soft); font-size: 16px; }
-button {
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+h1 { font-family: var(--font-display); font-size: 22px; margin: 0; text-wrap: balance; }
+button, select, input[type="text"] {
   font: inherit;
-  font-weight: 700;
   color: var(--ink);
   background: var(--panel);
   border: 2px solid var(--line);
   border-radius: 12px;
-  min-height: 52px;
-  padding: 8px 18px;
-  cursor: pointer;
+  min-height: 48px;
+  padding: 6px 14px;
 }
-button:focus-visible, input:focus-visible, .phrase:focus-visible {
+button { font-weight: 700; cursor: pointer; }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-visible, .phrase:focus-visible {
   outline: 4px solid var(--accent);
   outline-offset: 2px;
 }
-button:disabled { opacity: 0.5; cursor: not-allowed; }
-.sizes button { min-width: 56px; padding: 8px 10px; }
-.status {
+details.settings { position: relative; }
+details.settings > summary {
+  list-style: none;
+  cursor: pointer;
+  font-weight: 700;
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+  min-height: 48px;
+  padding: 9px 16px;
+}
+details.settings > summary::-webkit-details-marker { display: none; }
+.settings-panel {
+  position: absolute;
+  right: 0;
+  top: 56px;
+  z-index: 5;
+  width: min(340px, calc(100vw - 32px));
+  background: var(--panel);
+  border: 2px solid var(--line);
+  border-radius: 14px;
+  padding: 14px;
   display: flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 28px;
-  color: var(--ink-soft);
-  font-size: 18px;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
 }
-.dot {
-  width: 14px; height: 14px; border-radius: 50%;
+.row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.row > span { font-weight: 700; }
+.row small { display: block; font-weight: 400; color: var(--ink-soft); font-size: 15px; }
+.row select { max-width: 170px; }
+.sizes { display: flex; gap: 8px; }
+.sizes button { min-width: 54px; padding: 6px 8px; }
+.switch { position: relative; flex: none; width: 64px; height: 36px; }
+.switch input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.switch i {
+  position: absolute; inset: 0;
+  border-radius: 999px;
   background: var(--line);
-  flex: none;
+  pointer-events: none;
 }
+.switch i::after {
+  content: "";
+  position: absolute; top: 4px; left: 4px;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--panel);
+  transition: transform 0.15s;
+}
+.switch input:checked + i { background: var(--accent); }
+.switch input:checked + i::after { transform: translateX(28px); }
+.switch input:focus-visible + i { outline: 4px solid var(--accent); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .switch i::after { transition: none; } }
+
+.status { display: flex; align-items: center; gap: 10px; min-height: 26px; color: var(--ink-soft); font-size: 17px; }
+.dot { width: 14px; height: 14px; border-radius: 50%; background: var(--line); flex: none; }
 .listening .dot { background: var(--live); animation: pulse 1.2s ease-in-out infinite; }
 .listening .status { color: var(--live); font-weight: 700; }
 @keyframes pulse { 50% { transform: scale(1.5); opacity: 0.5; } }
 @media (prefers-reduced-motion: reduce) { .listening .dot { animation: none; } }
+
+.people { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.people .tip { flex: 1 1 100%; color: var(--ink-soft); font-size: 15px; }
+.people button, .people input[type="text"] { min-height: 40px; padding: 4px 12px; font-size: 16px; border-radius: 999px; }
+.people input[type="text"] { width: 130px; border-radius: 12px; }
+.chip { color: var(--panel); border-color: transparent; }
+.chip[aria-pressed="true"] { box-shadow: 0 0 0 3px var(--panel), 0 0 0 6px var(--ink); }
+.s1 { background: var(--s1); } .s2 { background: var(--s2); } .s3 { background: var(--s3); }
+.s4 { background: var(--s4); } .s5 { background: var(--s5); } .s6 { background: var(--s6); }
+
 .words {
   flex: 1 1 auto;
-  min-height: 0;
+  min-height: 170px;
   overflow-y: auto;
   background: var(--panel);
   border: 2px solid var(--line);
   border-radius: 16px;
-  padding: 16px 18px;
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -130,6 +171,18 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 }
 .listening .words { border-color: var(--live); }
 .hint { color: var(--ink-soft); margin: 0; }
+.who {
+  display: inline-block;
+  min-height: 0;
+  font-size: 15px;
+  line-height: 1.2;
+  padding: 6px 12px;
+  margin-bottom: 4px;
+  border-radius: 999px;
+  border-color: transparent;
+  color: var(--panel);
+}
+.nolabels .who, .nolabels .people { display: none; }
 .phrase {
   all: unset;
   display: block;
@@ -138,42 +191,22 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
   overflow-wrap: anywhere;
   border-radius: 8px;
 }
-.phrase:last-of-type { color: var(--ink); font-weight: 700; }
+.line:last-of-type .phrase { color: var(--ink); font-weight: 700; }
 .partial { margin: 0; color: var(--ink-soft); font-style: italic; overflow-wrap: anywhere; }
-.controls { display: flex; flex-wrap: wrap; gap: 10px; }
-.controls button { flex: 1 1 140px; min-height: 64px; font-size: 20px; }
+
+.controls { display: flex; flex-wrap: wrap; gap: 8px; }
 #listenBtn {
-  flex: 2 1 240px;
+  flex: 1 1 100%;
+  min-height: 60px;
   background: var(--accent);
   border-color: var(--accent);
   color: var(--accent-ink);
-  font-size: 24px;
+  font-size: 23px;
 }
 .listening #listenBtn { background: var(--live); border-color: var(--live); }
-form { display: flex; gap: 10px; }
-input[type="text"] {
-  flex: 1 1 auto;
-  min-width: 0;
-  font: inherit;
-  font-size: 20px;
-  color: var(--ink);
-  background: var(--panel);
-  border: 2px solid var(--line);
-  border-radius: 12px;
-  min-height: 52px;
-  padding: 8px 14px;
-}
-select {
-  font: inherit;
-  color: var(--ink);
-  background: var(--panel);
-  border: 2px solid var(--line);
-  border-radius: 12px;
-  min-height: 52px;
-  padding: 8px 10px;
-  max-width: 190px;
-}
-select:focus-visible { outline: 4px solid var(--accent); outline-offset: 2px; }
+.controls .small { flex: 1 1 0; min-width: 0; padding: 6px 4px; font-size: 17px; }
+form { display: flex; gap: 8px; }
+form input[type="text"] { flex: 1 1 auto; min-width: 0; font-size: 19px; }
 input::placeholder { color: var(--ink-soft); }
 [hidden] { display: none !important; }
 </style>
@@ -182,15 +215,26 @@ input::placeholder { color: var(--ink-soft); }
 <div class="app" id="app">
   <div class="top">
     <h1>Grandpa's Words</h1>
-    <label class="sizes" id="voiceWrap" hidden>
-      <span>Voice</span>
-      <select id="voiceSel" aria-label="Voice for reading aloud"></select>
-    </label>
-    <div class="sizes">
-      <span>Text size</span>
-      <button type="button" id="smaller" aria-label="Make text smaller">A−</button>
-      <button type="button" id="bigger" aria-label="Make text bigger">A+</button>
-    </div>
+    <details class="settings" id="settings">
+      <summary>Settings</summary>
+      <div class="settings-panel">
+        <div class="row">
+          <span>Label who is speaking<small>Turn off to show everyone's words as one running conversation.</small></span>
+          <label class="switch"><input type="checkbox" id="labelsOn" role="switch" aria-label="Label who is speaking"><i></i></label>
+        </div>
+        <div class="row">
+          <span>Text size</span>
+          <div class="sizes">
+            <button type="button" id="smaller" aria-label="Make text smaller">A−</button>
+            <button type="button" id="bigger" aria-label="Make text bigger">A+</button>
+          </div>
+        </div>
+        <label class="row" id="voiceWrap" hidden>
+          <span>Reading voice</span>
+          <select id="voiceSel" aria-label="Voice for reading aloud"></select>
+        </label>
+      </div>
+    </details>
   </div>
 
   <div class="status" role="status" aria-live="polite">
@@ -198,16 +242,18 @@ input::placeholder { color: var(--ink-soft); }
     <span id="statusText">Getting ready…</span>
   </div>
 
+  <div class="people" id="people" aria-label="People in the conversation"></div>
+
   <div class="words" id="words" aria-live="polite">
-    <p class="hint" id="hint">His words will show here in large print. Press Start listening and hold the device close to him.</p>
+    <p class="hint" id="hint">The conversation will show here in large print. Press Start listening and keep the phone close to whoever is talking.</p>
     <p class="partial" id="partial" hidden></p>
   </div>
 
   <div class="controls">
     <button type="button" id="listenBtn" disabled>Start listening</button>
-    <button type="button" id="readBtn" disabled>Read aloud</button>
-    <button type="button" id="undoBtn" disabled>Remove last line</button>
-    <button type="button" id="clearBtn">Clear</button>
+    <button type="button" class="small" id="readBtn" disabled>Read aloud</button>
+    <button type="button" class="small" id="undoBtn" disabled>Undo line</button>
+    <button type="button" class="small" id="clearBtn">Clear</button>
   </div>
 
   <form id="typeForm" autocomplete="off">
@@ -225,24 +271,33 @@ input::placeholder { color: var(--ink-soft); }
   var statusText = document.getElementById('statusText');
   var listenBtn = document.getElementById('listenBtn');
   var readBtn = document.getElementById('readBtn');
+  var undoBtn = document.getElementById('undoBtn');
+  var peopleEl = document.getElementById('people');
+  var labelsBox = document.getElementById('labelsOn');
 
-  var phrases = [];
+  var lines = [];        // {text, sp, pitch, el, who}
   var listening = false;
   var speaking = false;
-  var ear = null;    // listening engine: {kind, start(), stop()}
-  var voice = null;  // speaking engine: {speak(text), stop()}
+  var ear = null;        // listening engine: {kind, start(), stop(), kick()}
+  var voice = null;      // speaking engine: {speak(text), stop()}
   var wakeLock = null;
+  var partialStart = 0;  // when the current phrase began
+  var lastCommitT = 0;   // when the last line was finished
+  var lastWordsT = 0;    // when any words last arrived
+  var listenStartT = 0;
+
+  function now() { return (window.performance && performance.now) ? performance.now() : Date.now(); }
+  function load(key) { try { return localStorage.getItem(key); } catch (e) { return null; } }
+  function save(key, val) { try { localStorage.setItem(key, val); } catch (e) {} }
 
   /* ---------- text size ---------- */
   var sizes = [22, 28, 36, 46, 58, 72];
   var sizeIdx = window.innerWidth < 500 ? 1 : 2;
-  try {
-    var saved = parseInt(localStorage.getItem('gw-size'), 10);
-    if (saved >= 0 && saved < sizes.length) sizeIdx = saved;
-  } catch (e) {}
+  var savedSize = parseInt(load('gw-size'), 10);
+  if (savedSize >= 0 && savedSize < sizes.length) sizeIdx = savedSize;
   function applySize() {
     document.documentElement.style.setProperty('--read-size', sizes[sizeIdx] + 'px');
-    try { localStorage.setItem('gw-size', String(sizeIdx)); } catch (e) {}
+    save('gw-size', String(sizeIdx));
   }
   applySize();
   document.getElementById('smaller').addEventListener('click', function () {
@@ -252,6 +307,213 @@ input::placeholder { color: var(--ink-soft); }
     if (sizeIdx < sizes.length - 1) { sizeIdx++; applySize(); }
   });
 
+  /* ---------- who is speaking ---------- */
+  var labelsOn = load('gw-labels') !== 'off';
+  var speakers = [];   // {name, mean} mean = usual voice pitch, in semitones
+  var cur = -1;        // who is speaking now
+  var editing = false;
+  var labeled = 0;
+
+  function newSpeaker(mean) {
+    if (speakers.length >= 6) return -1;
+    speakers.push({ name: 'Speaker ' + (speakers.length + 1), mean: mean == null ? null : mean });
+    return speakers.length - 1;
+  }
+  function assign(st) {
+    var i, best = -1, bd = 1e9;
+    if (st == null) {
+      if (cur < 0) cur = newSpeaker(null);
+      renderPeople();
+      return cur;
+    }
+    for (i = 0; i < speakers.length; i++) {
+      if (speakers[i].mean == null) continue;
+      var d = Math.abs(speakers[i].mean - st);
+      if (d < bd) { bd = d; best = i; }
+    }
+    if (best < 0) {
+      for (i = 0; i < speakers.length; i++) if (speakers[i].mean == null) { best = i; break; }
+      if (best < 0) best = newSpeaker(st); else speakers[best].mean = st;
+    } else if (bd > 3.5) {
+      var n = newSpeaker(st);
+      if (n >= 0) best = n;
+    } else {
+      speakers[best].mean = speakers[best].mean * 0.8 + st * 0.2;
+    }
+    cur = best;
+    renderPeople();
+    return best;
+  }
+  function paintWho(line) {
+    if (line.sp == null || !speakers[line.sp]) { line.who.hidden = true; return; }
+    line.who.hidden = false;
+    line.who.textContent = speakers[line.sp].name;
+    line.who.className = 'who s' + (line.sp % 6 + 1);
+    line.who.setAttribute('aria-label', 'Said by ' + speakers[line.sp].name + '. Tap to change.');
+  }
+  function renderPeople() {
+    app.classList.toggle('nolabels', !labelsOn);
+    peopleEl.textContent = '';
+    if (!labelsOn) return;
+    if (editing) {
+      speakers.forEach(function (s, i) {
+        var inp = document.createElement('input');
+        inp.type = 'text';
+        inp.id = 'name' + i;
+        inp.value = s.name;
+        inp.setAttribute('aria-label', 'Name for ' + s.name);
+        peopleEl.appendChild(inp);
+      });
+      var done = document.createElement('button');
+      done.type = 'button';
+      done.textContent = 'Done';
+      done.addEventListener('click', function () {
+        speakers.forEach(function (s, i) {
+          var v = (document.getElementById('name' + i).value || '').trim();
+          if (v) s.name = v.slice(0, 20);
+        });
+        editing = false;
+        lines.forEach(paintWho);
+        renderPeople();
+      });
+      peopleEl.appendChild(done);
+      return;
+    }
+    speakers.forEach(function (s, i) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'chip s' + (i % 6 + 1);
+      b.textContent = s.name;
+      b.setAttribute('aria-pressed', i === cur ? 'true' : 'false');
+      b.addEventListener('click', function () { cur = i; renderPeople(); });
+      peopleEl.appendChild(b);
+    });
+    if (speakers.length < 6) {
+      var add = document.createElement('button');
+      add.type = 'button';
+      add.textContent = '+ Person';
+      add.addEventListener('click', function () { var n = newSpeaker(null); if (n >= 0) cur = n; renderPeople(); });
+      peopleEl.appendChild(add);
+    }
+    if (speakers.length) {
+      var ren = document.createElement('button');
+      ren.type = 'button';
+      ren.textContent = 'Names';
+      ren.addEventListener('click', function () { editing = true; renderPeople(); });
+      peopleEl.appendChild(ren);
+    }
+    var tip = document.createElement('span');
+    tip.className = 'tip';
+    tip.textContent = tone.failed
+      ? 'Voices cannot be told apart automatically here. Tap a name when that person starts talking.'
+      : 'Voices are grouped by how they sound. Tap the label on a line if it is wrong.';
+    peopleEl.appendChild(tip);
+  }
+
+  /* ---------- listening to the sound of each voice ---------- */
+  function pitchOf(buf, sr) {
+    var n = buf.length, i, rms = 0;
+    for (i = 0; i < n; i++) rms += buf[i] * buf[i];
+    rms = Math.sqrt(rms / n);
+    if (rms < 0.006) return 0;
+    var minLag = Math.floor(sr / 350), maxLag = Math.min(Math.floor(sr / 70), n >> 1), w = n - maxLag;
+    var e0 = 0;
+    for (i = 0; i < w; i++) e0 += buf[i] * buf[i];
+    var cs = [], best = 0, lag;
+    for (lag = minLag; lag <= maxLag; lag++) {
+      var s = 0, e1 = 0;
+      for (i = 0; i < w; i++) { var b = buf[i + lag]; s += buf[i] * b; e1 += b * b; }
+      var c = s / Math.sqrt(e0 * e1 + 1e-12);
+      cs.push(c);
+      if (c > best) best = c;
+    }
+    if (best < 0.55) return 0;
+    for (i = 1; i < cs.length - 1; i++) {
+      if (cs[i] >= 0.9 * best && cs[i] >= cs[i - 1] && cs[i] >= cs[i + 1]) return sr / (minLag + i);
+    }
+    return 0;
+  }
+
+  var tone = {
+    failed: false, pending: false, stream: null, ctx: null, src: null, an: null, buf: null,
+    timer: null, samples: [], readings: 0, ticks: 0,
+    start: function () {
+      var self = this;
+      if (self.stream || self.pending || self.failed) return;
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        self.failed = true; renderPeople(); return;
+      }
+      self.pending = true;
+      try {
+        if (!self.ctx) self.ctx = new AC();
+        if (self.ctx.resume) self.ctx.resume().catch(function () {});
+      } catch (e) {}
+      navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false } })
+        .then(function (s) {
+          self.pending = false;
+          if (!labelsOn || !listening || self.failed || !self.ctx) {
+            s.getTracks().forEach(function (t) { t.stop(); });
+            return;
+          }
+          try {
+            self.stream = s;
+            self.src = self.ctx.createMediaStreamSource(s);
+            self.an = self.ctx.createAnalyser();
+            self.an.fftSize = 2048;
+            self.src.connect(self.an);
+            self.buf = new Float32Array(2048);
+            self.timer = setInterval(function () { self.tick(); }, 80);
+          } catch (e) { self.giveUp(false); }
+        })
+        .catch(function () { self.pending = false; self.failed = true; renderPeople(); });
+    },
+    stop: function () {
+      clearInterval(this.timer); this.timer = null;
+      try { if (this.src) this.src.disconnect(); } catch (e) {}
+      if (this.stream) this.stream.getTracks().forEach(function (t) { t.stop(); });
+      this.stream = null; this.src = null; this.an = null;
+    },
+    giveUp: function (restartEar) {
+      this.stop();
+      this.failed = true;
+      renderPeople();
+      if (restartEar && ear && ear.kick) ear.kick();
+    },
+    tick: function () {
+      if (!this.an) return;
+      var t = now(), f = 0;
+      try { this.an.getFloatTimeDomainData(this.buf); f = pitchOf(this.buf, this.ctx.sampleRate); } catch (e) {}
+      if (f) { this.samples.push({ t: t, st: 12 * Math.log(f / 100) / Math.LN2 }); this.readings++; }
+      while (this.samples.length && this.samples[0].t < t - 60000) this.samples.shift();
+      // If voices are clearly being heard but no words arrive, the two uses of
+      // the microphone are clashing: drop voice labels and keep the words.
+      if (++this.ticks % 25 === 0 && listening && t - listenStartT > 16000 && t - lastWordsT > 15000) {
+        var recent = 0;
+        for (var i = this.samples.length - 1; i >= 0 && this.samples[i].t > t - 15000; i--) recent++;
+        if (recent >= 60) this.giveUp(true);
+      }
+    },
+    median: function (t0, t1) {
+      var v = [];
+      for (var i = 0; i < this.samples.length; i++) {
+        var s = this.samples[i];
+        if (s.t >= t0 && s.t <= t1) v.push(s.st);
+      }
+      if (v.length < 4) return null;
+      v.sort(function (a, b) { return a - b; });
+      return v[v.length >> 1];
+    }
+  };
+
+  labelsBox.checked = labelsOn;
+  labelsBox.addEventListener('change', function () {
+    labelsOn = labelsBox.checked;
+    save('gw-labels', labelsOn ? 'on' : 'off');
+    renderPeople();
+    if (labelsOn && listening) tone.start(); else tone.stop();
+  });
+
   /* ---------- transcript ---------- */
   function scrollDown() { wordsEl.scrollTop = wordsEl.scrollHeight; }
   function tidy(text) {
@@ -259,40 +521,84 @@ input::placeholder { color: var(--ink-soft); }
     if (!text) return '';
     return text.charAt(0).toUpperCase() + text.slice(1);
   }
-  function addPhrase(text) {
+  function addPhrase(text, typed) {
     text = tidy(text);
     if (!text) return;
-    phrases.push(text);
-    hintEl.hidden = true;
+    var t = now();
+    var line = { text: text, sp: null, pitch: null };
+    if (!typed) {
+      lastWordsT = t;
+      if (labelsOn) {
+        var t0 = Math.max((partialStart || t - 3000) - 1500, lastCommitT);
+        line.pitch = tone.stream ? tone.median(t0, t) : null;
+        line.sp = assign(line.pitch);
+        labeled++;
+        if (tone.stream && labeled >= 4 && tone.readings === 0) tone.giveUp(false);
+      }
+      lastCommitT = t;
+    }
+    partialStart = 0;
+
+    var row = document.createElement('div');
+    row.className = 'line';
+    var who = document.createElement('button');
+    who.type = 'button';
+    who.className = 'who';
+    who.addEventListener('click', function () {
+      if (speakers.length < 2) newSpeaker(null);
+      line.sp = ((line.sp == null ? -1 : line.sp) + 1) % speakers.length;
+      var s = speakers[line.sp];
+      if (line.pitch != null) s.mean = s.mean == null ? line.pitch : (s.mean + line.pitch) / 2;
+      if (lines[lines.length - 1] === line) cur = line.sp;
+      paintWho(line);
+      renderPeople();
+    });
     var b = document.createElement('button');
     b.type = 'button';
     b.className = 'phrase';
     b.textContent = text;
     b.setAttribute('aria-label', 'Read aloud: ' + text);
     b.addEventListener('click', function () { readAloud(text); });
-    wordsEl.insertBefore(b, partialEl);
+    row.appendChild(who);
+    row.appendChild(b);
+    line.el = row;
+    line.who = who;
+    paintWho(line);
+    lines.push(line);
+    hintEl.hidden = true;
+    wordsEl.insertBefore(row, partialEl);
     setPartial('');
-    updateReadBtn();
+    updateButtons();
     scrollDown();
   }
   function setPartial(text) {
     text = tidy(text);
+    if (text) {
+      lastWordsT = now();
+      if (!partialStart) partialStart = lastWordsT;
+    }
     partialEl.textContent = text;
     partialEl.hidden = !text;
     if (text) { hintEl.hidden = true; scrollDown(); }
   }
   document.getElementById('clearBtn').addEventListener('click', function () {
-    phrases = [];
-    var old = wordsEl.querySelectorAll('.phrase');
-    for (var i = 0; i < old.length; i++) old[i].remove();
+    lines.forEach(function (l) { l.el.remove(); });
+    lines = [];
     setPartial('');
     hintEl.hidden = false;
-    updateReadBtn();
+    updateButtons();
+  });
+  undoBtn.addEventListener('click', function () {
+    var l = lines.pop();
+    if (!l) return;
+    l.el.remove();
+    if (!lines.length && partialEl.hidden) hintEl.hidden = false;
+    updateButtons();
   });
   document.getElementById('typeForm').addEventListener('submit', function (e) {
     e.preventDefault();
     var input = document.getElementById('typed');
-    addPhrase(input.value);
+    addPhrase(input.value, true);
     input.value = '';
   });
 
@@ -302,34 +608,32 @@ input::placeholder { color: var(--ink-soft); }
     listening = on;
     app.classList.toggle('listening', on);
     listenBtn.textContent = on ? 'Stop listening' : 'Start listening';
-    if (on) setStatus('Listening…');
-    else { setPartial(''); setStatus(note || 'Not listening. Press Start listening.'); }
+    if (on) {
+      listenStartT = lastWordsT = now();
+      setStatus('Listening…');
+    } else {
+      setPartial('');
+      partialStart = 0;
+      tone.stop();
+      setStatus(note || 'Not listening. Press Start listening.');
+    }
     keepAwake(on);
   }
-  function setSpeaking(on) {
-    speaking = on;
-    updateReadBtn();
-  }
-  var undoBtn = document.getElementById('undoBtn');
-  undoBtn.addEventListener('click', function () {
-    var all = wordsEl.querySelectorAll('.phrase');
-    if (!all.length) return;
-    all[all.length - 1].remove();
-    phrases.pop();
-    if (!phrases.length && partialEl.hidden) hintEl.hidden = false;
-    updateReadBtn();
-  });
-  function updateReadBtn() {
-    undoBtn.disabled = phrases.length === 0;
+  function setSpeaking(on) { speaking = on; updateButtons(); }
+  function updateButtons() {
+    undoBtn.disabled = lines.length === 0;
     if (!voice) { readBtn.hidden = true; return; }
     readBtn.hidden = false;
     readBtn.textContent = speaking ? 'Stop reading' : 'Read aloud';
-    readBtn.disabled = !speaking && phrases.length === 0;
+    readBtn.disabled = !speaking && lines.length === 0;
   }
   function keepAwake(on) {
     try {
       if (on && navigator.wakeLock && !wakeLock) {
-        navigator.wakeLock.request('screen').then(function (l) { wakeLock = l; l.addEventListener('release', function () { if (wakeLock === l) wakeLock = null; }); }).catch(function () {});
+        navigator.wakeLock.request('screen').then(function (l) {
+          wakeLock = l;
+          l.addEventListener('release', function () { if (wakeLock === l) wakeLock = null; });
+        }).catch(function () {});
       } else if (!on && wakeLock) {
         wakeLock.release().catch(function () {});
         wakeLock = null;
@@ -338,12 +642,13 @@ input::placeholder { color: var(--ink-soft); }
   }
   function codeOf(err) { return (err && (err.code || err.error || err.message)) || String(err); }
 
-  /* ---------- listening ---------- */
+  /* ---------- listening for words ---------- */
   listenBtn.addEventListener('click', function () {
     if (!ear) return;
     if (listening) { ear.stop(); return; }
     if (speaking && voice) voice.stop();
-    ear.start(); // called straight from the click
+    ear.start();               // called straight from the press
+    if (labelsOn) tone.start();
   });
 
   function claudeEar(d) {
@@ -353,7 +658,7 @@ input::placeholder { color: var(--ink-soft); }
       var on = m && m.state === 'listening';
       var note = '';
       if (!on && m && m.reason === 'hidden') note = 'Stopped because the page was hidden. Press Start listening.';
-      setListening(on, note);
+      if (on !== listening || note) setListening(on, note);
     });
     return {
       kind: 'claude',
@@ -369,32 +674,41 @@ input::placeholder { color: var(--ink-soft); }
   }
 
   function nativeEar(R) {
-    // One long listening session that never ends on its own: when the phone
-    // closes a session (it does after a pause or about a minute), a new one
-    // starts right away. A short silence turns the words so far into a line.
-    var rec = null, want = false, active = false;
+    // One listening session at a time, and never more than one. When the phone
+    // closes a session (after a pause, or about a minute), the next one opens
+    // by itself. A short silence turns the words so far into a line.
+    var rec = null, want = false, state = 'idle', openedAt = 0;
     var kept = 0, shown = '', quiet = null, again = null, fails = 0;
 
     function keepShown() {
       clearTimeout(quiet);
       if (shown) { kept += shown.length; var p = shown; shown = ''; addPhrase(p); }
     }
-    function restartSoon(ms) {
+    function drop() {
+      var r = rec;
+      rec = null; state = 'idle';
+      if (r) {
+        r.onstart = r.onresult = r.onerror = r.onend = null;
+        try { r.abort(); } catch (e) {}
+      }
+    }
+    function later(ms) {
       clearTimeout(again);
-      if (!want) return;
-      again = setTimeout(open, ms);
+      again = null;
+      if (want) again = setTimeout(function () { again = null; open(); }, ms);
     }
     function open() {
-      if (!want || active) return;
+      if (!want || state !== 'idle') return;
       kept = 0; shown = '';
       var r = new R();
-      rec = r;
+      rec = r; state = 'opening'; openedAt = Date.now();
       r.continuous = true;
       r.interimResults = true;
       r.lang = 'en-US';
       r.onstart = function () {
-        active = true; fails = 0;
-        if (!listening) setListening(true); else setStatus('Listening…');
+        if (r !== rec) return;
+        state = 'open'; fails = 0;
+        if (listening) setStatus('Listening…');
       };
       r.onresult = function (e) {
         if (r !== rec) return;
@@ -407,44 +721,51 @@ input::placeholder { color: var(--ink-soft); }
         shown = full.slice(kept);
         clearTimeout(quiet);
         if (!shown.trim()) { shown = ''; kept = full.length; setPartial(''); return; }
-        if (lastFinal) { keepShown(); return; }
         setPartial(shown);
-        quiet = setTimeout(keepShown, 1600);
+        quiet = setTimeout(keepShown, lastFinal ? 700 : 1600);
       };
       r.onerror = function (e) {
         if (r !== rec) return;
         if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
           want = false;
-          setListening(false, 'The microphone is blocked. Allow the microphone for this page, then press Start listening.');
+          keepShown();
+          drop();
+          setListening(false, 'The microphone or dictation is blocked. Allow it for this page, then press Start listening.');
         } else if (e.error === 'audio-capture') {
           want = false;
+          drop();
           setListening(false, 'No microphone was found.');
         }
-        // no-speech, aborted, network: the session ends and reopens below
+        // no-speech, aborted, network: the session ends and the next one opens
       };
       r.onend = function () {
         if (r !== rec) return;
-        active = false;
+        rec = null; state = 'idle';
         keepShown();
-        if (want) restartSoon(250);
+        if (want) later(300);
         else if (listening) setListening(false);
       };
       try { r.start(); } catch (err) {
-        active = false;
+        rec = null; state = 'idle';
         fails++;
-        if (fails > 20) {
+        if (fails > 25) {
           want = false;
           setListening(false, 'Listening stopped. Press Start listening.');
-        } else restartSoon(600);
+        } else later(800);
       }
     }
 
-    // Safety net: if listening should be on but no session is open, open one.
+    // Safety net. It never opens a second session while one is starting.
     setInterval(function () {
-      if (want && !active && !document.hidden) open();
-    }, 3000);
+      if (!want || document.hidden) return;
+      if (state === 'idle' && !again) open();
+      else if (state === 'opening' && Date.now() - openedAt > 45000) { drop(); open(); }
+    }, 4000);
     document.addEventListener('visibilitychange', function () {
-      if (!document.hidden && want) { if (!active) restartSoon(300); keepAwake(true); }
+      if (!document.hidden && want) {
+        keepAwake(true);
+        if (state === 'idle') later(300);
+      }
     });
 
     return {
@@ -452,17 +773,22 @@ input::placeholder { color: var(--ink-soft); }
       start: function () {
         want = true; fails = 0;
         setListening(true);
+        setStatus('Starting the microphone…');
         open();
       },
       stop: function () {
         want = false;
-        clearTimeout(again);
+        clearTimeout(again); again = null;
         keepShown();
-        var r = rec;
-        rec = null; active = false;
-        try { r && r.abort(); } catch (e) {}
+        drop();
         setListening(false);
         return Promise.resolve();
+      },
+      kick: function () {
+        if (!want) return;
+        keepShown();
+        drop();
+        later(400);
       }
     };
   }
@@ -470,7 +796,7 @@ input::placeholder { color: var(--ink-soft); }
   /* ---------- reading aloud ---------- */
   readBtn.addEventListener('click', function () {
     if (speaking) { voice.stop(); return; }
-    if (phrases.length) readAloud(phrases[phrases.length - 1]);
+    if (lines.length) readAloud(lines[lines.length - 1].text);
   });
 
   async function readAloud(text) {
@@ -489,7 +815,7 @@ input::placeholder { color: var(--ink-soft); }
         t.speak(text.slice(0, 2000), { rate: 0.9, language: 'en' }).catch(function (err) {
           setSpeaking(false);
           var c = codeOf(err);
-          if (c === 'not_granted') { voice = null; updateReadBtn(); }
+          if (c === 'not_granted') { voice = null; updateButtons(); }
           else if (c === 'busy') setStatus('Stop listening first, then press Read aloud.');
           else if (c === 'rate_limited') setStatus('Please wait a moment, then press Read aloud again.');
         });
@@ -501,7 +827,7 @@ input::placeholder { color: var(--ink-soft); }
   function nativeVoice() {
     var synth = window.speechSynthesis;
     var sel = document.getElementById('voiceSel');
-    var chosen = null;
+    var chosen = null, list = [];
     var novelty = /albert|bad news|bahh|bells|boing|bubbles|cellos|wobble|fred|good news|jester|organ|superstar|trinoids|whisper|zarvox|junior|ralph|kathy|eddy|flo|grandma|grandpa|reed|rocko|sandy|shelley|eloquence/i;
     function score(v) {
       var n = v.name, p = 0;
@@ -510,17 +836,15 @@ input::placeholder { color: var(--ink-soft); }
       if (/siri|natural|neural/i.test(n)) p += 25;
       if (/ava|zoe|evan|samantha|allison|nathan|joelle|noelle|susan|tom/i.test(n)) p += 6;
       if (/en[-_]US/i.test(v.lang)) p += 3;
-      if (novelty.test(n)) p -= 100;
       return p;
     }
     function loadVoices() {
-      var list = [];
-      try { list = synth.getVoices() || []; } catch (e) {}
-      list = list.filter(function (v) { return /^en/i.test(v.lang) && !novelty.test(v.name); });
+      var all = [];
+      try { all = synth.getVoices() || []; } catch (e) {}
+      list = all.filter(function (v) { return /^en/i.test(v.lang) && !novelty.test(v.name); });
       list.sort(function (x, y) { return score(y) - score(x); });
       if (!list.length) { chosen = null; return; }
-      var want = '';
-      try { want = localStorage.getItem('gw-voice') || ''; } catch (e) {}
+      var want = load('gw-voice') || '';
       chosen = list[0];
       sel.textContent = '';
       list.forEach(function (v) {
@@ -531,18 +855,10 @@ input::placeholder { color: var(--ink-soft); }
         if (v.name === want) chosen = v;
       });
       sel.value = chosen.name;
-      sel._list = list;
       document.getElementById('voiceWrap').hidden = list.length < 2;
     }
     loadVoices();
     try { synth.addEventListener('voiceschanged', loadVoices); } catch (e) {}
-    sel.addEventListener('change', function () {
-      var list = sel._list || [];
-      for (var i = 0; i < list.length; i++) if (list[i].name === sel.value) chosen = list[i];
-      try { localStorage.setItem('gw-voice', sel.value); } catch (e) {}
-      if (listening && ear) ear.stop();
-      api.speak('This is how I will sound when I read his words.');
-    });
     var api = {
       speak: function (text) {
         try {
@@ -559,6 +875,12 @@ input::placeholder { color: var(--ink-soft); }
       },
       stop: function () { try { synth.cancel(); } catch (e) {} setSpeaking(false); }
     };
+    sel.addEventListener('change', function () {
+      for (var i = 0; i < list.length; i++) if (list[i].name === sel.value) chosen = list[i];
+      save('gw-voice', sel.value);
+      if (listening && ear) ear.stop();
+      api.speak('This is how I will sound when I read the words.');
+    });
     return api;
   }
 
@@ -577,6 +899,7 @@ input::placeholder { color: var(--ink-soft); }
   }
 
   async function boot() {
+    renderPeople();
     var c = await findClaude();
     var d = null, t = null;
     if (c) {
@@ -591,7 +914,7 @@ input::placeholder { color: var(--ink-soft); }
 
     if (t) voice = claudeVoice(t);
     else if (window.speechSynthesis && window.SpeechSynthesisUtterance) voice = nativeVoice();
-    updateReadBtn();
+    updateButtons();
 
     var R = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (d) ear = claudeEar(d);
@@ -605,6 +928,7 @@ input::placeholder { color: var(--ink-soft); }
     }
   }
   boot();
+
 })();
 </script>
 </body>
