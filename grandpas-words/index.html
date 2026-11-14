@@ -163,6 +163,17 @@ input[type="text"] {
   min-height: 52px;
   padding: 8px 14px;
 }
+select {
+  font: inherit;
+  color: var(--ink);
+  background: var(--panel);
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  min-height: 52px;
+  padding: 8px 10px;
+  max-width: 190px;
+}
+select:focus-visible { outline: 4px solid var(--accent); outline-offset: 2px; }
 input::placeholder { color: var(--ink-soft); }
 [hidden] { display: none !important; }
 </style>
@@ -171,6 +182,10 @@ input::placeholder { color: var(--ink-soft); }
 <div class="app" id="app">
   <div class="top">
     <h1>Grandpa's Words</h1>
+    <label class="sizes" id="voiceWrap" hidden>
+      <span>Voice</span>
+      <select id="voiceSel" aria-label="Voice for reading aloud"></select>
+    </label>
     <div class="sizes">
       <span>Text size</span>
       <button type="button" id="smaller" aria-label="Make text smaller">A−</button>
@@ -474,13 +489,58 @@ input::placeholder { color: var(--ink-soft); }
 
   function nativeVoice() {
     var synth = window.speechSynthesis;
-    return {
+    var sel = document.getElementById('voiceSel');
+    var chosen = null;
+    var novelty = /albert|bad news|bahh|bells|boing|bubbles|cellos|wobble|fred|good news|jester|organ|superstar|trinoids|whisper|zarvox|junior|ralph|kathy|eddy|flo|grandma|grandpa|reed|rocko|sandy|shelley|eloquence/i;
+    function score(v) {
+      var n = v.name, p = 0;
+      if (/premium/i.test(n)) p += 40;
+      if (/enhanced/i.test(n)) p += 30;
+      if (/siri|natural|neural/i.test(n)) p += 25;
+      if (/ava|zoe|evan|samantha|allison|nathan|joelle|noelle|susan|tom/i.test(n)) p += 6;
+      if (/en[-_]US/i.test(v.lang)) p += 3;
+      if (novelty.test(n)) p -= 100;
+      return p;
+    }
+    function loadVoices() {
+      var list = [];
+      try { list = synth.getVoices() || []; } catch (e) {}
+      list = list.filter(function (v) { return /^en/i.test(v.lang) && !novelty.test(v.name); });
+      list.sort(function (x, y) { return score(y) - score(x); });
+      if (!list.length) { chosen = null; return; }
+      var want = '';
+      try { want = localStorage.getItem('gw-voice') || ''; } catch (e) {}
+      chosen = list[0];
+      sel.textContent = '';
+      list.forEach(function (v) {
+        var o = document.createElement('option');
+        o.value = v.name;
+        o.textContent = v.name.replace(/\s*\((english|en)[^)]*\)/i, '');
+        sel.appendChild(o);
+        if (v.name === want) chosen = v;
+      });
+      sel.value = chosen.name;
+      sel._list = list;
+      document.getElementById('voiceWrap').hidden = list.length < 2;
+    }
+    loadVoices();
+    try { synth.addEventListener('voiceschanged', loadVoices); } catch (e) {}
+    sel.addEventListener('change', function () {
+      var list = sel._list || [];
+      for (var i = 0; i < list.length; i++) if (list[i].name === sel.value) chosen = list[i];
+      try { localStorage.setItem('gw-voice', sel.value); } catch (e) {}
+      if (listening && ear) ear.stop();
+      api.speak('This is how I will sound when I read his words.');
+    });
+    var api = {
       speak: function (text) {
         try {
           synth.cancel();
+          if (!chosen) loadVoices();
           var u = new SpeechSynthesisUtterance(text);
-          u.rate = 0.9;
-          u.lang = 'en-US';
+          if (chosen) { u.voice = chosen; u.lang = chosen.lang; } else u.lang = 'en-US';
+          u.rate = 0.92;
+          u.pitch = 1;
           u.onend = u.onerror = function () { setSpeaking(false); };
           setSpeaking(true);
           synth.speak(u);
@@ -488,6 +548,7 @@ input::placeholder { color: var(--ink-soft); }
       },
       stop: function () { try { synth.cancel(); } catch (e) {} setSpeaking(false); }
     };
+    return api;
   }
 
   /* ---------- start up: pick what this view can do ---------- */
