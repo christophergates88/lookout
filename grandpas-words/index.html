@@ -243,8 +243,8 @@ input::placeholder { color: var(--ink-soft); }
           <span class="toggle"><b class="onoff" id="labelsState">Off</b><label class="switch"><input type="checkbox" id="labelsOn" role="switch" aria-label="Show who is talking"><i></i></label></span>
         </div>
         <div class="row">
-          <span>Hide TV and radio words<small id="bgNote">Hides words no louder than the room's steady sound. May hide quiet talking.</small></span>
-          <span class="toggle"><b class="onoff" id="bgState">Off</b><label class="switch"><input type="checkbox" id="bgOn" role="switch" aria-label="Hide TV and radio words"><i></i></label></span>
+          <span>Hide steady background sound<small id="bgNote">Hides words picked up from music or steady noise. It cannot remove talking on a TV, and may hide quiet talking.</small></span>
+          <span class="toggle"><b class="onoff" id="bgState">Off</b><label class="switch"><input type="checkbox" id="bgOn" role="switch" aria-label="Hide steady background sound"><i></i></label></span>
         </div>
         <div class="row">
           <span>Text size <small id="sizeNote"></small></span>
@@ -358,9 +358,10 @@ input::placeholder { color: var(--ink-soft); }
   var editing = false;
   var labeled = 0;
 
+  var pendingOut = null;   // a voice unlike anyone so far, waiting to be heard a second time
   function newSpeaker(mean) {
     if (speakers.length >= 6) return -1;
-    speakers.push({ name: 'Person ' + (speakers.length + 1), mean: mean == null ? null : mean });
+    speakers.push({ name: 'Person ' + (speakers.length + 1), mean: mean == null ? null : mean, n: mean == null ? 0 : 1 });
     return speakers.length - 1;
   }
   function assign(st) {
@@ -377,12 +378,20 @@ input::placeholder { color: var(--ink-soft); }
     }
     if (best < 0) {
       for (i = 0; i < speakers.length; i++) if (speakers[i].mean == null) { best = i; break; }
-      if (best < 0) best = newSpeaker(st); else speakers[best].mean = st;
-    } else if (bd > 3.5) {
-      var n = newSpeaker(st);
-      if (n >= 0) best = n;
+      if (best < 0) best = newSpeaker(st); else { speakers[best].mean = st; speakers[best].n = 1; }
+    } else if (bd > 4.5) {
+      // Only add a person once the same new voice has been heard twice.
+      var t = now();
+      if (pendingOut && t - pendingOut.t < 60000 && Math.abs(pendingOut.st - st) <= 2.5) {
+        var n = newSpeaker((pendingOut.st + st) / 2);
+        if (n >= 0) { best = n; speakers[n].n = 2; }
+        pendingOut = null;
+      } else pendingOut = { st: st, t: t };
     } else {
-      speakers[best].mean = speakers[best].mean * 0.8 + st * 0.2;
+      var sp = speakers[best];
+      sp.n++;
+      var wgt = Math.max(0.05, 1 / sp.n);
+      sp.mean = sp.mean * (1 - wgt) + st * wgt;
     }
     cur = best;
     renderPeople();
@@ -403,7 +412,7 @@ input::placeholder { color: var(--ink-soft); }
       : 'Groups lines by the sound of each voice. Tap a label to change it.';
     document.getElementById('bgNote').textContent = tone.failed
       ? 'Not working on this phone: it will not share the microphone. Switch off and on to try again.'
-      : "Hides words no louder than the room's steady sound. May hide quiet talking.";
+      : 'Hides words picked up from music or steady noise. It cannot remove talking on a TV, and may hide quiet talking.';
   }
   function renderPeople(force) {
     app.classList.toggle('nolabels', !labelsOn);
@@ -493,9 +502,9 @@ input::placeholder { color: var(--ink-soft); }
   }
 
   var tone = {
-    failed: load('gw-tone-fail') === '1',
+    failed: parseInt(load('gw-tone-fails'), 10) >= 3,
     pending: false, stream: null, track: null, ctx: null, src: null, an: null, buf: null,
-    timer: null, samples: [], levels: [], readings: 0, ticks: 0, startT: 0, mutedTicks: 0,
+    timer: null, samples: [], levels: [], readings: 0, ticks: 0, startT: 0, mutedTicks: 0, words: 0,
     prime: function () {   // must be called from a press
       var AC = window.AudioContext || window.webkitAudioContext;
       if (!AC) return;
@@ -526,7 +535,7 @@ input::placeholder { color: var(--ink-soft); }
             self.an.fftSize = 2048;
             self.src.connect(self.an);
             self.buf = new Float32Array(2048);
-            self.samples = []; self.levels = []; self.readings = 0; self.mutedTicks = 0;
+            self.samples = []; self.levels = []; self.readings = 0; self.mutedTicks = 0; self.words = 0;
             self.startT = now();
             self.timer = setInterval(function () { self.tick(); }, 80);
           } catch (e) { self.giveUp(false, false); }
@@ -542,20 +551,21 @@ input::placeholder { color: var(--ink-soft); }
     giveUp: function (restartEar, remember) {
       this.stop();
       this.failed = true;
-      if (remember) save('gw-tone-fail', '1');
+      if (remember) save('gw-tone-fails', String((parseInt(load('gw-tone-fails'), 10) || 0) + 1));
       renderPeople();
       if (restartEar && ear && ear.kick) ear.kick();
     },
-    retry: function () { this.failed = false; save('gw-tone-fail', '0'); },
+    retry: function () { this.failed = false; save('gw-tone-fails', '0'); },
     tick: function () {
       if (!this.an) return;
       var t = now(), f = 0, b = this.buf;
       try { this.an.getFloatTimeDomainData(b); f = pitchOf(b, this.ctx.sampleRate); } catch (e) {}
       var sum = 0;
       for (var k = 0; k < b.length; k++) sum += b[k] * b[k];
-      this.levels.push({ t: t, db: 10 * Math.log(sum / b.length + 1e-20) / Math.LN10 });
+      var db = 10 * Math.log(sum / b.length + 1e-20) / Math.LN10;
+      this.levels.push({ t: t, db: db, k: 0 });
       while (this.levels.length && this.levels[0].t < t - 60000) this.levels.shift();
-      if (f) { this.samples.push({ t: t, st: 12 * Math.log(f / 100) / Math.LN2 }); this.readings++; }
+      if (f) { this.samples.push({ t: t, st: 12 * Math.log(f / 100) / Math.LN2, db: db }); this.readings++; }
       while (this.samples.length && this.samples[0].t < t - 60000) this.samples.shift();
       // The phone has cut this page off from the microphone.
       if (this.track && (this.track.muted || this.track.readyState === 'ended')) {
@@ -563,10 +573,12 @@ input::placeholder { color: var(--ink-soft); }
       } else this.mutedTicks = 0;
       // Voices are clearly being heard but no words arrive: the two uses of the
       // microphone are clashing. Drop the extras and keep the words.
-      if (++this.ticks % 25 === 0 && listening && t - this.startT > 16000 && t - lastWordsT > 15000) {
+      // (Music or a TV alone can look like this for a while, so wait 45 seconds
+      // with not one word since this started before deciding.)
+      if (++this.ticks % 25 === 0 && listening && this.words === 0 && t - this.startT > 45000) {
         var recent = 0;
-        for (var i = this.samples.length - 1; i >= 0 && this.samples[i].t > t - 15000; i--) recent++;
-        if (recent >= 60) this.giveUp(true, true);
+        for (var i = this.samples.length - 1; i >= 0 && this.samples[i].t > t - 30000; i--) recent++;
+        if (recent >= 120) this.giveUp(true, true);
       }
     },
     recentMax: function (t) {
@@ -574,18 +586,19 @@ input::placeholder { color: var(--ink-soft); }
       for (var i = this.levels.length - 1; i >= 0 && this.levels[i].t > t - 20000; i--) if (this.levels[i].db > m) m = this.levels[i].db;
       return m;
     },
-    // The room's steady sound level: what is there most of the time (a TV, music).
+    // The room's steady sound level: what is there most of the time (music, a
+    // fan, a crowd). Stretches already kept as someone talking are left out.
     floor: function (t) {
       var v = [];
       for (var i = 0; i < this.levels.length; i++) {
         var l = this.levels[i];
-        if (l.t > t - 45000 && l.db > -90) v.push(l.db);
+        if (l.t > t - 45000 && l.db > -90 && !l.k) v.push(l.db);
       }
       if (v.length < 100) return null;
       v.sort(function (a, b) { return a - b; });
       return v[Math.floor(v.length * 0.3)];
     },
-    // How loud the loud parts of one phrase were.
+    // How loud the loudest moments of one phrase were (so a one-word answer counts).
     loud: function (t0, t1) {
       var v = [];
       for (var i = 0; i < this.levels.length; i++) {
@@ -593,16 +606,25 @@ input::placeholder { color: var(--ink-soft); }
         if (l.t >= t0 && l.t <= t1) v.push(l.db);
       }
       if (v.length < 4) return null;
-      v.sort(function (a, b) { return a - b; });
-      return v[Math.floor(v.length * 0.8)];
+      v.sort(function (a, b) { return b - a; });
+      return (v[0] + v[1] + v[2] + v[3]) / 4;
     },
+    markKept: function (t0, t1) {
+      for (var i = this.levels.length - 1; i >= 0 && this.levels[i].t >= t0; i--) if (this.levels[i].t <= t1) this.levels[i].k = 1;
+    },
+    // The voice pitch of one phrase, taken only from its loud moments so that a
+    // quieter TV in the pauses does not decide it.
     median: function (t0, t1) {
-      var v = [];
-      for (var i = 0; i < this.samples.length; i++) {
-        var s = this.samples[i];
-        if (s.t >= t0 && s.t <= t1) v.push(s.st);
+      var lv = [], v = [], i, s;
+      for (i = 0; i < this.levels.length; i++) if (this.levels[i].t >= t0 && this.levels[i].t <= t1) lv.push(this.levels[i].db);
+      if (lv.length < 4) return null;
+      lv.sort(function (a, b) { return a - b; });
+      var gate = lv[Math.floor(lv.length * 0.8)] - 4;
+      for (i = 0; i < this.samples.length; i++) {
+        s = this.samples[i];
+        if (s.t >= t0 && s.t <= t1 && s.db >= gate) v.push(s.st);
       }
-      if (v.length < 4) return null;
+      if (v.length < 5) return null;
       v.sort(function (a, b) { return a - b; });
       return v[v.length >> 1];
     }
@@ -644,7 +666,7 @@ input::placeholder { color: var(--ink-soft); }
       if (speakers.length < 2) newSpeaker(null);
       line.sp = ((line.sp == null ? -1 : line.sp) + 1) % speakers.length;
       var s = speakers[line.sp];
-      if (line.pitch != null) s.mean = s.mean == null ? line.pitch : (s.mean + line.pitch) / 2;
+      if (line.pitch != null) s.mean = s.mean == null ? line.pitch : s.mean * 0.8 + line.pitch * 0.2;
       if (lines[lines.length - 1] === line) cur = line.sp;
       paintWho(line);
       renderPeople();
@@ -701,7 +723,7 @@ input::placeholder { color: var(--ink-soft); }
       if (tone.stream && heard >= 4 && t - tone.startT > 20000 && tone.recentMax(t) < -70) tone.giveUp(false, true);   // the phone gives this page no sound
       if (bgOn && tone.stream) {
         var fl = tone.floor(t), ld = tone.loud(t0, t);
-        if (fl != null && ld != null && ld > -70 && ld - fl < 6) {
+        if (fl != null && ld != null && ld > -70 && fl > -62 && ld - fl < 6) {
           lastCommitT = t;
           partialStart = 0;
           hideAsBackground(text);
@@ -711,9 +733,12 @@ input::placeholder { color: var(--ink-soft); }
           return;
         }
       }
+      if (tone.stream) { tone.words++; tone.markKept(t0, t); }
       if (labelsOn) {
         pitch = tone.stream ? tone.median(t0, t) : null;
-        sp = assign(pitch);
+        // No clear voice to go on: better no label than a wrong one. Without
+        // the microphone extras, the label is whoever was tapped last.
+        sp = (tone.stream && pitch == null) ? null : assign(pitch);
         labeled++;
       }
       lastCommitT = t;
@@ -734,6 +759,7 @@ input::placeholder { color: var(--ink-soft); }
       lastWordsT = now();
       if (!partialStart) partialStart = lastWordsT;
       if (needMic() && listening && !tone.stream) tone.start();
+      if (tone.stream) tone.words++;
     }
     partialEl.textContent = text;
     partialEl.hidden = !text;
