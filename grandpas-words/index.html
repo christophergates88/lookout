@@ -223,6 +223,10 @@ input::placeholder { color: var(--ink-soft); }
           <label class="switch"><input type="checkbox" id="labelsOn" role="switch" aria-label="Label who is speaking"><i></i></label>
         </div>
         <div class="row">
+          <span>Ignore background TV<small id="bgNote">Drops words that are no louder than the room's steady background sound.</small></span>
+          <label class="switch"><input type="checkbox" id="bgOn" role="switch" aria-label="Ignore background TV"><i></i></label>
+        </div>
+        <div class="row">
           <span>Text size</span>
           <div class="sizes">
             <button type="button" id="smaller" aria-label="Make text smaller">A−</button>
@@ -309,6 +313,9 @@ input::placeholder { color: var(--ink-soft); }
 
   /* ---------- who is speaking ---------- */
   var labelsOn = load('gw-labels') !== 'off';
+  var bgOn = load('gw-bg') !== 'off';   // ignore steady background sound such as a TV
+  var heard = 0;
+  function needMic() { return labelsOn || bgOn; }
   var speakers = [];   // {name, mean} mean = usual voice pitch, in semitones
   var cur = -1;        // who is speaking now
   var editing = false;
@@ -353,6 +360,7 @@ input::placeholder { color: var(--ink-soft); }
   }
   function renderPeople() {
     app.classList.toggle('nolabels', !labelsOn);
+    if (tone.failed) document.getElementById('bgNote').textContent = 'Not available on this phone: it will not let the page measure sound while it listens.';
     peopleEl.textContent = '';
     if (!labelsOn) return;
     if (editing) {
@@ -436,7 +444,7 @@ input::placeholder { color: var(--ink-soft); }
 
   var tone = {
     failed: false, pending: false, stream: null, ctx: null, src: null, an: null, buf: null,
-    timer: null, samples: [], readings: 0, ticks: 0,
+    timer: null, samples: [], readings: 0, ticks: 0, levels: [], maxDb: -200,
     start: function () {
       var self = this;
       if (self.stream || self.pending || self.failed) return;
@@ -449,10 +457,10 @@ input::placeholder { color: var(--ink-soft); }
         if (!self.ctx) self.ctx = new AC();
         if (self.ctx.resume) self.ctx.resume().catch(function () {});
       } catch (e) {}
-      navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false } })
+      navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } })
         .then(function (s) {
           self.pending = false;
-          if (!labelsOn || !listening || self.failed || !self.ctx) {
+          if (!needMic() || !listening || self.failed || !self.ctx) {
             s.getTracks().forEach(function (t) { t.stop(); });
             return;
           }
@@ -484,6 +492,12 @@ input::placeholder { color: var(--ink-soft); }
       if (!this.an) return;
       var t = now(), f = 0;
       try { this.an.getFloatTimeDomainData(this.buf); f = pitchOf(this.buf, this.ctx.sampleRate); } catch (e) {}
+      var sum = 0, b = this.buf;
+      for (var k = 0; k < b.length; k++) sum += b[k] * b[k];
+      var db = 10 * Math.log(sum / b.length + 1e-20) / Math.LN10;
+      if (db > this.maxDb) this.maxDb = db;
+      this.levels.push({ t: t, db: db });
+      while (this.levels.length && this.levels[0].t < t - 60000) this.levels.shift();
       if (f) { this.samples.push({ t: t, st: 12 * Math.log(f / 100) / Math.LN2 }); this.readings++; }
       while (this.samples.length && this.samples[0].t < t - 60000) this.samples.shift();
       // If voices are clearly being heard but no words arrive, the two uses of
@@ -493,6 +507,28 @@ input::placeholder { color: var(--ink-soft); }
         for (var i = this.samples.length - 1; i >= 0 && this.samples[i].t > t - 15000; i--) recent++;
         if (recent >= 60) this.giveUp(true);
       }
+    },
+    // The room's steady sound level: what is there most of the time (a TV, music).
+    floor: function (t) {
+      var v = [];
+      for (var i = 0; i < this.levels.length; i++) {
+        var l = this.levels[i];
+        if (l.t > t - 45000 && l.db > -90) v.push(l.db);
+      }
+      if (v.length < 100) return null;
+      v.sort(function (a, b) { return a - b; });
+      return v[Math.floor(v.length * 0.3)];
+    },
+    // How loud the loud parts of one phrase were.
+    loud: function (t0, t1) {
+      var v = [];
+      for (var i = 0; i < this.levels.length; i++) {
+        var l = this.levels[i];
+        if (l.t >= t0 && l.t <= t1) v.push(l.db);
+      }
+      if (v.length < 4) return null;
+      v.sort(function (a, b) { return a - b; });
+      return v[Math.floor(v.length * 0.8)];
     },
     median: function (t0, t1) {
       var v = [];
@@ -511,8 +547,21 @@ input::placeholder { color: var(--ink-soft); }
     labelsOn = labelsBox.checked;
     save('gw-labels', labelsOn ? 'on' : 'off');
     renderPeople();
-    if (labelsOn && listening) tone.start(); else tone.stop();
+    if (needMic() && listening) tone.start(); else tone.stop();
   });
+  var bgBox = document.getElementById('bgOn');
+  bgBox.checked = bgOn;
+  bgBox.addEventListener('change', function () {
+    bgOn = bgBox.checked;
+    save('gw-bg', bgOn ? 'on' : 'off');
+    if (needMic() && listening) tone.start(); else tone.stop();
+  });
+  var flashTimer = null;
+  function flash(text) {
+    setStatus(text);
+    clearTimeout(flashTimer);
+    flashTimer = setTimeout(function () { if (listening) setStatus('Listening…'); }, 2500);
+  }
 
   /* ---------- transcript ---------- */
   function scrollDown() { wordsEl.scrollTop = wordsEl.scrollHeight; }
@@ -527,9 +576,21 @@ input::placeholder { color: var(--ink-soft); }
     var t = now();
     var line = { text: text, sp: null, pitch: null };
     if (!typed) {
+      var t0 = Math.max((partialStart || t - 3000) - 1500, lastCommitT);
       lastWordsT = t;
+      heard++;
+      if (tone.stream && heard >= 4 && tone.maxDb < -70) tone.giveUp(false);   // the phone gives this page no sound
+      if (bgOn && tone.stream) {
+        var fl = tone.floor(t), ld = tone.loud(t0, t);
+        if (fl != null && ld != null && ld > -70 && ld - fl < 6) {
+          lastCommitT = t;
+          partialStart = 0;
+          setPartial('');
+          flash('Ignored background sound.');
+          return;
+        }
+      }
       if (labelsOn) {
-        var t0 = Math.max((partialStart || t - 3000) - 1500, lastCommitT);
         line.pitch = tone.stream ? tone.median(t0, t) : null;
         line.sp = assign(line.pitch);
         labeled++;
@@ -648,7 +709,7 @@ input::placeholder { color: var(--ink-soft); }
     if (listening) { ear.stop(); return; }
     if (speaking && voice) voice.stop();
     ear.start();               // called straight from the press
-    if (labelsOn) tone.start();
+    if (needMic()) tone.start();
   });
 
   function claudeEar(d) {
